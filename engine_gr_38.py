@@ -51,41 +51,47 @@ def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod
 	Clod_number_around_anthill(blue): the number of clod around the blue anthill (int)
 	Turn: The number of turn (int)
 
-    return
-	------
-    Is_game_over : R if red team win, B if bleu team win, E if there's no winner(bool)
-
 	Version
 	-------
 	Specification : Yuruk Valentin, Antoine Boudjenah ( v.2 15/03/21)
-	Implementation : Antoine Boudjenah(V.1)
+	Implementation : Yuruk Valentin, Antoine Boudjenah (V.1 15/03/21)
     """
 
 	nbr_cld_r = Clod_number_around_anthill(Clod_dico, Anthill_dico, red)
 	nbr_cld_b = Clod_number_around_anthill(Clod_dico, Anthill_dico, blue)
 
+	#R if red team win, B if bleu team win, E if there's no winner(bool)
+
 	if nbr_cld_r == 8: 
 		if nbr_cld_b == 8:
-			Is_game_over = "E" #No winner
-		else
-			Is_game_over = "B" #Blue team win
+			#No winner
+			End_game('E')
+		else:
+			#Blue team win
+			End_game("B")
 	elif nbr_cld_b == 8:
-		Is_game_over = "R" #Red team win
+		#Red team win
+		End_game("R")
 
-	return Is_game_over
-def End_game(Turn, Clod_number_around_anthill(red),Clod_number_around_anthill(blue)): 
+def End_game(winner): 
 	""" Finish the game and display the winner team.
 
 	Parameter
 	---------
-	Turn :the number of turn (int)
-	Clod_number_around_anthill(red): check the number of clods around the red anthill (int)
-	Clod_number_around_anthill(blue): check the number of clods around the blue anthill (int)
+	winnner :the team which is the winner (str)
 
 	Version
 	-------
 	Specification : Yuruk Valentin, Marchal Tom (v.1 22/02/21)
+	Implementation : Yuruk Valentin, Antoine Boudjenah (V.1 15/03/21)
 	"""
+	if winner == "E":
+		print("There's no winner")
+	elif winner == "R":
+		print("Red team is the winner")		
+	elif Is_game_over == "":
+		print("Blue team is the winner")
+		
 def drop_clod(order,ant_dico,clod_dico):
 	""" Check if the ant can drop the clod.
 
