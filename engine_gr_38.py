@@ -42,7 +42,7 @@ def Player_order(order_player_1,order_player_2):
 	order_p2 = order_player_2.plit()
 	return order_p1, order_p2
 
-def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod_number_around_anthill(Clod_dico, Anthill_dico,blue),Turn):
+def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod_number_around_anthill(Clod_dico, Anthill_dico,blue)):
     """Verify if the game is over or not.
 
     parameters        
@@ -51,14 +51,29 @@ def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod
 	Clod_number_around_anthill(blue): the number of clod around the blue anthill (int)
 	Turn: The number of turn (int)
 
-    return       
+    return
 	------
-    Is_over : True if one team have won or the game has reached 200 turns (bool)
+    Is_game_over : R if red team win, B if bleu team win, E if there's no winner(bool)
 
 	Version
 	-------
-	Specification : Yuruk Valentin ( v.1 22/02/21)
+	Specification : Yuruk Valentin, Antoine Boudjenah ( v.2 15/03/21)
+	Implementation : Antoine Boudjenah(V.1 15/03/21)
     """
+
+	nbr_cld_r = Clod_number_around_anthill(Clod_dico, Anthill_dico, red)
+	nbr_cld_b = Clod_number_around_anthill(Clod_dico, Anthill_dico, blue)
+
+	if nbr_cld_r == 8: 
+		if nbr_cld_b == 8:
+			Is_game_over = "E" #No winner
+		else
+			Is_game_over = "B" #Blue team win
+	elif nbr_cld_b == 8:
+		Is_game_over = "R" #Red team win
+
+	return Is_game_over
+
 def End_game(Turn, Clod_number_around_anthill(red),Clod_number_around_anthill(blue)): 
 	""" Finish the game and display the winner team.
 
@@ -150,6 +165,7 @@ def Is_ant_dead(Ant_dico):
 	Version
 	------- 
 	Specification : Antoine Boudjenah (v.1 22/02/21)
+	Implementation: Antoine Boudjenah (V.1 15/03/21)
 	"""
 	
 	Is_ant_dead = False
