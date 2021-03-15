@@ -172,8 +172,6 @@ def Is_ant_dead(Ant_dico):
 		life = ant_dico[cle][life]
 		if life == 0:
 			Ant_dico.del[cle]
-			Is_ant_dead = True
-	return Is_ant_dead
 
 def Clod_number_around_anthill(Clod_dico, Anthill_dico, team):
 	"""the function that will count clods around the anthill.
