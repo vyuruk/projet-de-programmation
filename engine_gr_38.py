@@ -58,7 +58,7 @@ def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod
 	Version
 	-------
 	Specification : Yuruk Valentin, Antoine Boudjenah ( v.2 15/03/21)
-	Implementation : Antoine Boudjenah(V.1 15/03/21)
+	Implementation : Antoine Boudjenah(V.1)
     """
 
 	nbr_cld_r = Clod_number_around_anthill(Clod_dico, Anthill_dico, red)
@@ -73,7 +73,6 @@ def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod
 		Is_game_over = "R" #Red team win
 
 	return Is_game_over
-
 def End_game(Turn, Clod_number_around_anthill(red),Clod_number_around_anthill(blue)): 
 	""" Finish the game and display the winner team.
 
