@@ -36,10 +36,11 @@ def Player_order(order_player_1,order_player_2):
 	Version
 	-------
 	Specification : Yuruk Valentin ( v.1 22/02/21)
+	Implémentation : Marchal Tom (v.1 7/03/21)
     """
 	#sépare les ordres de la chaine de caractère en liste
 	order_p1 = order_player_1.split()
-	order_p2 = order_player_2.plit()
+	order_p2 = order_player_2.split()
 	return order_p1, order_p2
 
 def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod_number_around_anthill(Clod_dico, Anthill_dico,blue)):
@@ -135,31 +136,149 @@ def Fight(order,ant_dico):
 	-------
 	Specification : Marchal Tom (v.1 20/02/21)
 	"""
-def Ant_movement(order, ant_dico): 
+def Ant_movement(Player_order(), ant_dico, clod_dico, anthill_dico): 
 	""" Check if the ant can move where the order indicate.
 	Parameter
 	---------
-	order : The order of the player (str)
+	Player_order : The order of the player (list)
 	ant_dico : The dico of the ants (dict)
-	
+	clod_dico : The dico of the clods(dict)
+	anthill_dico = the dico of the anthills(dict)
 	Version
 	-------
-	Specification : Marchal Tom (v.1 20/02/21)
+	Specification : Marchal Tom (v.2 19/03/21)
+	Implémentation: Marchal Tom (v.1 19/03/21)
 	"""
-def New_ant(turn, ant_dico, Clod_number_around_anthill(red),Clod_number_around_anthill(blue)): 
+	order_p1 = Player_order[0]
+	order_p2 = Player_order[1]
+	for order in order_p1:
+		if '@' in order:
+			coordinate = order[:4]
+			target = order[7:]
+			coordinate_x = int(coordinate[:1])
+			coordinate_y = int(coordinate[3:])
+			coordinate = (coordinate_x,coordinate_y)
+			target_x = int(target[:1])
+			target_y = int(target[3:])
+			target = (target_x,target_y)
+			#check if the ant exist
+			for ant in ant_dico:
+				if coordinate[0] == ant_dico[ant][0] and coordinate[1] == ant_dico[ant][1]:
+					#check if there is no ant at the destination
+					for a in ant_dico:
+						if target[0] != ant_dico[a][0] and target[1] != ant_dico[a][1]:
+							#check if there is a clod where the ant will move
+							for clod in clod_dico:
+								if target[0] != clod_dico[clod][0]  and target[1] != clod_dico[clod][1]:
+									#check if the ant doesn't move at the rival anthill
+									for anthill in anthill_dico:
+										if ant_dico[coordinate][team] not in anthill:
+											if target[0] != anthill_dico[anthill][0]  and target[1] != anthill_dico[anthill][1]:
+												ant_dico[coordinate][0] = target[0]
+												ant_dico[coordinate][1] = target[1]
+								#check if the ant doesn't carry a clod when there is a clod a the target
+								else:
+									if ant_dico[coordinate][clod] == False:
+										ant_dico[coordinate][0] = target[0]
+										ant_dico[coordinate][1] = target[1]
+								
+	for order in order_p2:
+		if '@' in order:
+			coordinate = order[:4]
+			target = order[7:]
+			coordinate_x = int(coordinate[:1])
+			coordinate_y = int(coordinate[3:])
+			coordinate = (coordinate_x,coordinate_y)
+			target_x = int(target[:1])
+			target_y = int(target[3:])
+			target = (target_x,target_y)
+			#check if the ant exist
+			for ant in ant_dico:
+				if coordinate[0] == ant_dico[ant][0] and coordinate[1] == ant_dico[ant][1]:
+					#check if there is no ant at the destination
+					for a in ant_dico:
+						if target[0] != ant_dico[a][0] and target[1] != ant_dico[a][1]:
+							#check if there is a clod where the ant will move
+							for clod in clod_dico:
+								if target[0] != clod_dico[clod][0]  and target[1] != clod_dico[clod][1]:
+									#check if the ant doesn't move at the rival anthill
+									for anthill in anthill_dico:
+										if ant_dico[coordinate][team] not in anthill:
+											if target[0] != anthill_dico[anthill][0]  and target[1] != anthill_dico[anthill][1]:
+												ant_dico[coordinate][0] = target[0]
+												ant_dico[coordinate][1] = target[1]
+								#check if the ant doesn't carry a clod when there is a clod a the target
+								else:
+									if ant_dico[coordinate][clod] == False:
+										ant_dico[coordinate][0] = target[0]
+										ant_dico[coordinate][1] = target[1]
+										
+def New_ant(turn, ant_dico, anthill_dico, Clod_number_around_anthill(red),Clod_number_around_anthill(blue)): 
 	""" Create an ant every 5 turns if there is nothing on the spawn coordinate and adapt the level of the ant with the number of clod around the anthill.
 
 	Parameter
 	---------
 	turn: The number of turn (int)
 	ant_dico: The dico of the ants (dict)
+	anthill_dico : The dico of the anthills(dict)
 	Clod_number_around_anthill(red): Check the number of clod around the red anthill (int)
 	Clod_number_around_anthill(blue) : Check the number of clod around the blue anthill (int)
 
 	Version
 	-------
-	Specification : Marchal Tom (v.1 20/02/21)
+	Specification : Marchal Tom (v.2 19/03/21)
+	Implémentation : Marchal Tom (v.1 19/03/21)
 	"""
+	clods_red = Clod_number_around_anthill(red)
+	clods_blue = Clod_number_around_anthill(blue)
+	anthill_blue = anthill_dico[0]
+	anthill_red = anthill_dico[1]
+	if turn % 5 == 0:
+		for ant in ant_dico:
+			if ant_dico[ant][0] != anthill_dico[anthill_blue][0] and ant_dico[ant][0] != anthill_dico[anthill_blue][1]:
+				if clods_blue <= 2:
+					ant_dico[key] = (anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][life] = 3
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][scope] = 3
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][strength] = 1
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][clod] = False
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][team] = 'blue'
+				if clods_blue <= 5 and clods_blue > 3:
+					ant_dico[key] = (anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][life] = 5
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][scope] = 3
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][strength] = 2
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][clod] = False
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][team] = 'blue'
+				if clods_blue <= 8 and clods_blue > 6:
+					ant_dico[key] = (anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][life] = 7
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][scope] = 3
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][strength] = 3
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][clod] = False
+					ant_dico[(anthill_dico[anthill_blue][0],anthill_dico[anthill_blue][1])][team] = 'blue'
+			if ant_dico[ant][0] != anthill_dico[anthill_red][0] and ant_dico[ant][0] != anthill_dico[anthill_red][1]:
+				if clods_red <= 2:
+					ant_dico[key] = (anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][life] = 3
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][scope] = 3
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][strength] = 1
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][clod] = False
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][team] = 'blue'
+				if clods_red <= 5 and clods_red > 3:
+					ant_dico[key] = (anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][life] = 5
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][scope] = 3
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][strength] = 2
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][clod] = False
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][team] = 'blue''
+				if clods_red <= 8 and clods_red > 6:
+					ant_dico[key] = (anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][life] = 7
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][scope] = 3
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][strength] = 3
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][clod] = False
+					ant_dico[(anthill_dico[anthill_red][0],anthill_dico[anthill_red][1])][team] = 'blue'
 
 def Is_ant_dead(Ant_dico):
 	"""verify if a ant is dead or not.
