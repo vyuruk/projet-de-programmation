@@ -314,10 +314,7 @@ def Clod_number_around_anthill(Clod_dico, Anthill_dico, team):
 	------- 
 	Specification : Antoine Boudjenah, Marchal Tom (v.1 22/02/21)
 	"""
-	anthill_team = "anthill_" + team
-	coordinate = Anthill_dico[anthill_team]
-	for clod in Clod_dico:
-		if clod[0] == coordinate[0]+1 and clod[1] = coordinate[1]:
+
 			
 def Display_interface(Cpx_file, Ant_dico, Clod_dico, Anthill_dico):
 	"""display the interface at the start of the game till the end. 
