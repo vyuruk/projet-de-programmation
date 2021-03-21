@@ -43,55 +43,54 @@ def Player_order(order_player_1,order_player_2):
 	order_p2 = order_player_2.split()
 	return order_p1, order_p2
 
-def Is_game_over( Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod_number_around_anthill(Clod_dico, Anthill_dico,blue)):
+def Is_game_over(nbr_cld_r, nbr_cld_b):
     """Verify if the game is over or not.
 
     parameters        
 	----------
     Clod_number_around_anthill(red): the number of clod around the red anthill (int)
 	Clod_number_around_anthill(blue): the number of clod around the blue anthill (int)
-	Turn: The number of turn (int)
+
+	return
+	------
+	Is_game_over : If the game is over or not(bool)
 
 	Version
 	-------
 	Specification : Yuruk Valentin, Antoine Boudjenah ( v.2 15/03/21)
-	Implementation : Yuruk Valentin, Antoine Boudjenah (V.1 15/03/21)
+	Implementation : Yuruk Valentin, Antoine Boudjenah (V.1 16/03/21)
     """
 
-	nbr_cld_r = Clod_number_around_anthill(Clod_dico, Anthill_dico, red)
-	nbr_cld_b = Clod_number_around_anthill(Clod_dico, Anthill_dico, blue)
+	Is_game_over = False
+
+	if nbr_cld_r == 8 or nbr_cld_b == 8: 
+		Is_game_over = True
+
+def End_game(nbr_cld_r, nbr_cld_b): 
+	""" Finish the game and display the winner team.
+
+	Parameter
+	---------
+	winnner : the team which is the winner (str)
+
+	Version
+	-------
+	Specification : Yuruk Valentin, Marchal Tom (v.2 16/32/21)
+	Implementation : Yuruk Valentin, Antoine Boudjenah (V.2 16/03/21)
+	"""
 
 	#R if red team win, B if bleu team win, E if there's no winner(bool)
 
 	if nbr_cld_r == 8: 
 		if nbr_cld_b == 8:
 			#No winner
-			End_game('E')
+			print("There's no winner")
 		else:
 			#Blue team win
-			End_game("B")
+			print("Blue team is the winner")	
 	elif nbr_cld_b == 8:
 		#Red team win
-		End_game("R")
-
-def End_game(winner): 
-	""" Finish the game and display the winner team.
-
-	Parameter
-	---------
-	winnner :the team which is the winner (str)
-
-	Version
-	-------
-	Specification : Yuruk Valentin, Marchal Tom (v.1 22/02/21)
-	Implementation : Yuruk Valentin, Antoine Boudjenah (V.1 15/03/21)
-	"""
-	if winner == "E":
-		print("There's no winner")
-	elif winner == "R":
-		print("Red team is the winner")		
-	elif Is_game_over == "":
-		print("Blue team is the winner")
+		print("Red team is the winner")	
 		
 def drop_clod(order,ant_dico,clod_dico):
 	""" Check if the ant can drop the clod.
@@ -434,7 +433,7 @@ Play_game( ):
 
 	Turn = 0 
 
-	While not is_game_over( ): 
+	While not is_game_over(Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod_number_around_anthill(Clod_dico, Anthill_dico, blue)):  
 
 		#Demander ordre 
 
@@ -471,4 +470,4 @@ Play_game( ):
 
 		Turn += 1 
 
-	End_game( ) 
+	End_game(Clod_number_around_anthill(Clod_dico, Anthill_dico, red), Clod_number_around_anthill(Clod_dico, Anthill_dico, blue)) 
