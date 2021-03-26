@@ -104,7 +104,21 @@ def drop_clod(order,ant_dico,clod_dico):
 	version
 	-------
 	Specification : Marchal Tom (v.1 26/02/21)
+	Implémentation : Marchal Tom (v.1 26/03/21)
 	"""
+	order_p1 = Player_order[0]
+	order_p2 = Player_order[1]
+	for order in order_p1:
+		if 'drop' in order:
+			ant = order[:4]
+			ant_x = ant[:1]
+			ant_y = ant[3:]
+			ant = (ant_x,ant_y)
+			for clod in clod_dico :
+				#check if the ant carry a clod
+				if clod[0] == ant[0] and clod[1] == ant[1]:
+					#drop the clod
+					ant_dico[ant][team] = False
 def lift_clod(order,ant_dico,clod_dico)
 	""" Check if the ant can lift the clod.
 
@@ -134,7 +148,29 @@ def Fight(order,ant_dico):
 	Version
 	-------
 	Specification : Marchal Tom (v.1 20/02/21)
+	Implémentation : Valentin Yuruk, Marchal Tom (v.1 26/03/21)
 	"""
+	order_p1 = Player_order[0]
+	order_p2 = Player_order[1]
+	for order in order_p1:
+		if '*' in order:
+			fighter = order[:4]
+			fighter_x = fighter[:1]
+			fighter_y = fighter[3:]
+			fighter = (fighter_x,fighter_y)
+			target = order[7:]
+			target_x = target[:1]
+			target_y = target[3:]
+			target = (target_x,target_y)
+			for ant in ant_dico:
+            	if fighter[0] ==  ant_dico[ant][0] and fighter[1] == ant_dico [ant][1:]:
+                    for b in ant_dico:
+                        if target[0]==ant_dico[ant][0] and target[1] == ant_dico[a][1]:
+							distance_x = abs(target[0] - fighter[0])
+							distance_y = abs(target[1] - fighter[1])
+							if ant_dico[fighter][scope] <= distance_x and ant_dico[fighter][scope] <= distance_y:
+								damage = ant_dico[fighter][strength]
+								ant_dico[target][life] -= damage
 def Ant_movement(Player_order(), ant_dico, clod_dico, anthill_dico): 
 	""" Check if the ant can move where the order indicate.
 	Parameter
