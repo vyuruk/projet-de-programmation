@@ -3,7 +3,7 @@ import blessed, math, os, time, random
 
 term = blessed.Terminal()
 
-def main_game(CPX_file, group_1, type_1, group_2, type_2):
+def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	"""Play a Copixhe game.
 
 	Parameters
@@ -21,9 +21,8 @@ def main_game(CPX_file, group_1, type_1, group_2, type_2):
 	If there is an external referee, set group id to 0 for remote player.
 
 	"""
-	data(cpx_file)
+	cpx_file()
 	ant_dico = data(cpx_file)[0]
-	print(ant_dico)
 	anthill_dico = data(cpx_file)[1]
 	clod_dico = data(cpx_file)[2]
 	#Display_interface(cpx_file,ant_dico,clod_dico,anthill_dico) 
@@ -31,9 +30,10 @@ def main_game(CPX_file, group_1, type_1, group_2, type_2):
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico):
 		Display_interface(cpx_file,ant_dico,clod_dico,anthill_dico)
 		#Demander ordre 
-		order_player_1 = input("Indiquer vos ordres (P1)")
+		order_player_1 = input("\n Indiquer vos ordres (P1)")
 		order_player_2 = input("Indiquer vos ordres (P2) ")
 		order = player_order(order_player_1,order_player_2)
+		
 		lift_clod(order,ant_dico,clod_dico)
 		drop_clod(order,ant_dico,clod_dico)
 		Fight(order,ant_dico)
@@ -44,7 +44,7 @@ def main_game(CPX_file, group_1, type_1, group_2, type_2):
 		New_ant(Turn,ant_dico,anthill_dico,clod_dico,Clod_number_around_anthill)
 
 		Turn += 1
-	End_game(Clod_number_around_anthill,clod_dico,anthill_dico) 
+	End_game(Clod_number_around_anthill,clod_dico,anthill_dico)
 
 def player_order(order_player_1, order_player_2):
 	"""the function that will allow players to give orders during the game
@@ -181,7 +181,7 @@ def lift_clod(order,ant_dico,clod_dico):
 			for clod in clod_dico:
 				#check if there is a clod 
 				if clod_dico[clod][0] == ant_dico[ant][0] and clod_dico[clod][1] == ant_dico[ant][1]:
-					ant_dico[ant][clod] == True
+					ant_dico[ant][clod] = True
 	
 	for order in order_p2:
 		if 'drop' in order:
@@ -192,7 +192,7 @@ def lift_clod(order,ant_dico,clod_dico):
 			for clod in clod_dico:
 				#check if there is a clod 
 				if clod_dico[clod][0] == ant_dico[ant][0] and clod_dico[clod][1] == ant_dico[ant][1]:
-					ant_dico[ant][clod] == True
+					ant_dico[ant][clod] = True
 def Fight(order,ant_dico): 
 	""" Check if the ant can attack the other one, attack if he can.
 
@@ -353,65 +353,75 @@ def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill):
 	Specification : Marchal Tom (v.1 20/02/21)
 	Implémentation : Marchal Tom (v.1 19/03/21)
 	"""
+	#collect the number of clods around the anthills
 	clods = Clod_number_around_anthill(clod_dico,anthill_dico)
 	clods_blue = clods[0]
 	clods_red = clods[1]
 	if turn % 5 == 0:
+		#create an ant
 		for ant in ant_dico:
-			if ant_dico[ant][0] != anthill_dico['anthill_blue'][0] and ant_dico[ant][0] != anthill_dico['anthill_blue'][1]:
+			if ant[0] != anthill_dico['anthill_blue'][0] or ant[1] != anthill_dico['anthill_blue'][1]:
 				if clods_blue <= 2:
-					ant_dico['key'] = (anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 3
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 1
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
 				if clods_blue <= 5 and clods_blue > 3:
-					ant_dico['key'] = (anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 5
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 2
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
 				if clods_blue <= 8 and clods_blue > 6:
-					ant_dico['key'] = (anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 7
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 3
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
 					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
-			if ant_dico[ant][0] != anthill_dico['anthill_red'][0] and ant_dico[ant][0] != anthill_dico['anthill_red'][1]:
+			if ant[0] != anthill_dico['anthill_red'][0] or ant[1] != anthill_dico['anthill_red'][1]:
 				if clods_red <= 2:
-					ant_dico['key'] = (anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 3
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 1
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
-					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'blue'
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
 				if clods_red <= 5 and clods_red > 3:
-					ant_dico['key'] = (anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 5
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 2
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
-					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'blue'
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
 				if clods_red <= 8 and clods_red > 6:
-					ant_dico['key'] = (anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 7
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 3
 					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
-					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'blue'
-def Is_ant_dead(Ant_dico):
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
+def Is_ant_dead(ant_dico):
 	"""verify if a ant is dead or not.
 	parameters
 	----------
-	Ant_dico: dictionary of ant (dict)
-	
+	ant_dico: dictionary of ant (dict)
+
 	Version
-	------- 
+	-------
 	Specification : Antoine Boudjenah (v.1 22/02/21)
+	Implementation: Antoine Boudjenah (V.1 15/03/21)
 	"""
+
+	Is_ant_dead = False
+	for cle in ant_dico:
+		life = ant_dico[cle]['life']
+		if life == 0:
+			ant_dico.pop[cle]
+
 def Clod_number_around_anthill(clod_dico, anthill_dico):
 	"""the function that will count clods around the anthills.
 	parameters
@@ -488,25 +498,37 @@ def Display_interface(cpx_file, ant_dico, clod_dico, anthill_dico):
 	Specification : Antoine Boudjenah (v.1 22/02/21)
 	Implémentation : Marchal Tom (v.1 12/03/21)
 	""" 
+	#collect the data of the game
 	fh=open(".\data_game.txt",'r')
 	lines = fh.readlines()
 	fh.close()
+	#determine the size of the map
 	map = lines[1]
 	map = map.split()
-	rows = int(map[0]) * 2
-	columns = int(map[1]) * 2
+	rows = int(map[0])
+	columns = int(map[1])
 	print(term.home + term.clear)
-	nrow = 1
-	ncol = 1
+	nrow = 0
+	ncol = 0
+	#print the map
 	for row in range (0,rows+1):
-		print(term.move_yx(row,columns) + term.black + term.on_green + "|" + term.normal, end='', flush=True)
-		print(nrow)
+		print(' ',nrow)
 		nrow +=1
 		for col in range(0, columns+1):
 			if col %2 == 0:
 				print(term.move_yx(row,col) + term.black + term.on_green + "_" + term.normal, end='', flush=True)
 			else:
 				print(term.move_yx(row,col) + term.black + term.on_green + "|" + term.normal, end='', flush=True)
+
+		#print the anthills
+	for anthill in anthill_dico:
+		x = anthill_dico[anthill][0]
+		y = anthill_dico[anthill][1]
+		if anthill == 'anthill_blue':
+			print(term.move_yx(x,y) + term.blue + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+		else:
+			print(term.move_yx(x,y) + term.red + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+	#print the ants
 	for ant in ant_dico:
 		x = ant[0]
 		y = ant[1]
@@ -520,19 +542,15 @@ def Display_interface(cpx_file, ant_dico, clod_dico, anthill_dico):
 				print(term.move_yx(x,y) + term.brown + term.on_red + ":" + term.normal, end='', flush=True)
 			else:
 				print(term.move_yx(x,y) + term.brown + term.on_red + "." + term.normal, end='', flush=True)
+
+	#print the clods
 	for clod in clod_dico:
 		x = clod[0]
 		y = clod[1]
 		for ant in ant_dico:
-			if clod_dico[clod] != ant_dico[ant]:
-				print(term.move_yx(x,y) + term.brown + term.on_red + "" + term.normal, end='', flush=True)
-	for anthill in anthill_dico:
-		x = anthill[0]
-		y = anthill[1]
-		if anthill == 'anthill_blue':
-			print(term.move_yx(row, col) + term.blue + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
-		else:
-			print(term.move_yx(row, col) + term.red + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+			if x != [ant][0] or y != [ant][1]:
+				print(term.move_yx(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
+				
 def data(cpx_file):
 	""" Create all the dictionnaries for the data structure.
 
@@ -551,14 +569,17 @@ def data(cpx_file):
 	Specification: Marchal Tom (v.1 26/02/21)
 	Implémentation: Marchal Tom (v.1 12/03/21)
 	"""
+	#collect the data of the game
 	fh = open('.\data_game.txt', 'r')
 	lines = fh.readlines()
 	fh.close()
+	#create the dictionnaries
 	clod_dico = {}
 	anthill_dico = {}
 	ant_dico = {}
 	nb_lines = 0
 	for line in lines:
+		#insert data in anthill_dico
 		if 'anthills' in line:
 			anthill_blue = lines[nb_lines + 1]
 			anthill_blue = anthill_blue.split()
@@ -568,6 +589,7 @@ def data(cpx_file):
 			anthill_red = anthill_red.split()
 			anthill_red = (int(anthill_red[0]), int(anthill_red[1]))
 			anthill_dico['anthill_red'] = anthill_red
+		#insert data in clod_dico
 		if 'clods' in line:
 			for clod in range(nb_lines + 1, len(lines)):
 				clod = lines[clod]
@@ -576,6 +598,22 @@ def data(cpx_file):
 				weight = int(clod[2])
 				clod_dico[coordinate] = weight
 		nb_lines += 1
+	#create an ant at each anthill
+	for anthill in anthill_dico:
+		if anthill == 'anthill_blue':
+			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
+			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 3
+			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
+			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 1	
+			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
+			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
+		else:
+			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
+			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 3
+			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
+			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 1	
+			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
+			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
 	return ant_dico, anthill_dico, clod_dico
 
 def cpx_file():
@@ -614,4 +652,4 @@ def cpx_file():
 		fh.write('%d %d %d \n'%(clod[0],clod[1],clod[2]))
 	fh.close()
 
-main_game(cpx_file,'gr_38','player','gr_2', 'player')
+main_game(cpx_file,input('The number of the first group'),input('The type of user (P1)'),input('The number of the second group'), input('The type of user (P2)'))
