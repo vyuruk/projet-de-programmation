@@ -26,7 +26,12 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	clod_dico = data(cpx_file)[2]
 	map = data(cpx_file)[3]
 	turn = 1
+	shift = 3
+	
+	#Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
+	
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
+		#Changer display interface par une fonction qui affiche à chaque tour
 		Display_interface(map,ant_dico,clod_dico,anthill_dico)
 		print(ant_dico)
 		if type_1 == "human" and type_2 == "human":
@@ -572,7 +577,7 @@ def Clod_number_around_anthill(clod_dico, anthill_dico):
 				nbr_cld_r += 1
 	return nbr_cld_b, nbr_cld_r
 
-def Display_interface(map, ant_dico, clod_dico, anthill_dico):
+def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	"""display the interface at the start of the game till the end. 
 	parameters
 	----------
@@ -583,55 +588,190 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico):
 
 	Version
 	------- 
-	Specification : Antoine Boudjenah (v.1 22/02/21)
-	Implémentation : Marchal Tom (v.1 12/03/21)
+	Specification : Antoine Boudjenah (v.2 6/04/21)
+	Implémentation : Antoine Boudjenah, Marchal Tom (v.2 6/04/21)
 	""" 
-	#determine the number of columns and rows
-	rows = int(map[0])
-	columns = int(map[1])
+	
+	#Clear terminal
 	print(term.home + term.clear)
-	nrow = 0
-	#print the map
-	for row in range (0,rows+1):
-		print(' ',nrow)
-		nrow +=1
-		for col in range(0, columns+1):
-			if col %2 == 0:
-				print(term.move_yx(row,col) + term.black + term.on_green + "_" + term.normal, end='', flush=True)
-			else:
-				print(term.move_yx(row,col) + term.black + term.on_green + "|" + term.normal, end='', flush=True)
 
-		#print the anthills
+	
+	row = 0
+	col = 0
+	line = 0
+	line2 = 0
+	display_line = 1
+	number_grid = 0
+
+	
+
+	#determine the number of columns and rows
+	
+	columns = int(map[0])
+	rows = int(map[1])
+
+
+	print(columns)
+	print(rows)
+	print(clod_dico)
+	
+	#Columns number (cell number) * 4 = pixel number
+	#Rows number (cell number) * 2 = pixel number
+
+	pixel_rows = shift + rows * 2
+	pixel_columns = shift + columns * 4
+
+	#print the map
+	for row in range (shift,pixel_rows+1):
+		line = 0
+		number_grid += 1/2
+		for col in range(shift, pixel_columns+1):
+			#Ligne du haut + numérotation
+			if row == shift:
+				if shift >= 3:
+					if line2 == 3:
+						print(term.move_xy(col-2, row-1), display_line)
+						display_line +=1
+						line2 = 0
+					else:
+						line2 +=1
+				#Coin gauche
+				if col == shift:
+					print(term.move_xy(col, row) + term.red + term.on_black + '┏' + term.normal, end='', flush=True)
+				#Coin droit
+				elif col == pixel_columns:
+					print(term.move_xy(col, row) + term.red + term.on_black + '┓' + term.normal, end='', flush=True)
+				#Chars intermédiaires
+				elif line != 3:
+					print(term.move_xy(col, row) + term.red + term.on_black + '━' + term.normal, end='', flush=True)
+					line +=1
+				elif line == 3:
+					print(term.move_xy(col, row) + term.red + term.on_black + '┳' + term.normal, end='', flush=True)
+					line = 0
+
+			#Lignes intermédiaires
+			#Soit une ligne d'affichage du jeu avec séparation verticale, soit une ligne de séparation des cases horizontale
+			elif (row > shift) and (row < pixel_rows):
+				#Lignes paires
+				if (row-shift) % 2 == 0:
+					#Premier char
+					if col == shift:
+						print(term.move_xy(col, row) + term.red + term.on_black + '┣' + term.normal, end='', flush=True)
+					#Dernier
+					elif col == pixel_columns:
+						print(term.move_xy(col, row) + term.red + term.on_black + '┫' + term.normal, end='', flush=True)
+					#Chars intermédiaires
+					elif line != 3:
+						print(term.move_xy(col, row) + term.red + term.on_black + '━' + term.normal, end='', flush=True)
+						line +=1
+					elif line == 3:
+						print(term.move_xy(col, row) + term.red + term.on_black + '╋' + term.normal, end='', flush=True)
+						line = 0
+
+				#Lignes impaires
+				elif (row-shift) % 2 != 0:
+					print(term.move_xy(0, row), math.trunc(number_grid))
+					#Premier et dernier char
+					if (col == shift) or (col == pixel_columns):
+						print(term.move_xy(col, row) + term.red + term.on_black + '┃' + term.normal, end='', flush=True)
+					#Chars intermédiaires
+					elif line != 3:
+						print(term.move_xy(col, row) + term.red + term.on_black + ' ' + term.normal, end='', flush=True)
+						line +=1
+					elif line == 3:
+						print(term.move_xy(col, row) + term.red + term.on_black + '┃' + term.normal, end='', flush=True)
+						line = 0
+
+			#Dernière ligne
+			elif row == pixel_rows:
+				#Coin gauche
+				if col == shift:
+					print(term.move_xy(col, row) + term.red + term.on_black + '┗' + term.normal, end='', flush=True)
+				#Coin droit
+				elif col == pixel_columns:
+					print(term.move_xy(col, row) + term.red + term.on_black + '┛' + term.normal, end='', flush=True)
+				#Chars intermédiaires
+				elif line != 3:
+					print(term.move_xy(col, row) + term.red + term.on_black + '━' + term.normal, end='', flush=True)
+					line +=1
+				elif line == 3:
+					print(term.move_xy(col, row) + term.red + term.on_black + '┻' + term.normal, end='', flush=True)
+					line = 0
+
+
+	#print the anthills
 	for anthill in anthill_dico:
 		x = anthill_dico[anthill][0]
 		y = anthill_dico[anthill][1]
+		x = pixel_to_cell(x,y,shift)[0]
+		y = pixel_to_cell(x,y,shift)[1]
 		if anthill == 'anthill_blue':
-			print(term.move_yx(x,y) + term.blue + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+			print(term.move_xy(x,y) + term.blue + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
 		else:
-			print(term.move_yx(x,y) + term.red + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+			print(term.move_xy(x,y) + term.red + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+
 	#print the ants
 	for ant in ant_dico:
 		x = ant[0]
 		y = ant[1]
+		x = pixel_to_cell(x,y,shift)[0]
+		y = pixel_to_cell(x,y,shift)[1]
 		if ant_dico[ant]['team'] == 'blue':
 			if ant_dico[ant]['clod']:
-				print(term.move_yx(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
+				print(term.move_xy(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
 			else:
-				print(term.move_yx(x,y) + term.brown + term.on_blue + "." + term.normal, end='', flush=True)
+				print(term.move_xy(x,y) + term.brown + term.on_blue + "." + term.normal, end='', flush=True)
 		else:
 			if ant_dico[ant]['clod']:
-				print(term.move_yx(x,y) + term.brown + term.on_red + ":" + term.normal, end='', flush=True)
+				print(term.move_xy(x,y) + term.brown + term.on_red + ":" + term.normal, end='', flush=True)
 			else:
-				print(term.move_yx(x,y) + term.brown + term.on_red + "." + term.normal, end='', flush=True)
+				print(term.move_xy(x,y) + term.brown + term.on_red + "." + term.normal, end='', flush=True)
 
 	#print the clods
 	for clod in clod_dico:
 		x = clod[0]
 		y = clod[1]
-		for ant in ant_dico:
-			if x != [ant][0] or y != [ant][1]:
-				print(term.move_yx(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
-				
+		x = pixel_to_cell(x,y,shift)[0]
+		y = pixel_to_cell(x,y,shift)[1]
+		print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
+
+
+		############ Fonction d'affichage à chaque tour #################
+		# is_ant = False
+		# for ant in ant_dico:
+		# 	if x != ant[0] or y != ant[1]:
+		# 		is_ant = True
+
+		# if is_ant:
+		# 	x = x * 2 + shift - 1
+		# 	y = y * 4 + shift - 2
+		# 	print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
+
+	print(term.move_xy(0, rows + shift + 2))
+
+def pixel_to_cell(x,y,shift):
+	"""
+	Parameters
+	----------
+	x : coordinate x (int)
+	y : coordinate y (int)
+	shift : shift of the grid (int)
+	
+	return
+	------
+	x : coordinate x (int)
+	y : coordinate y (int)
+
+	version
+	-------
+	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
+	Implémentation: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
+	"""
+	x = x * 4 + shift - 2
+	y = y * 2 + shift - 1
+
+	return x,y
+
 def data(cpx_file):
 	""" Create all the dictionnaries for the data structure.
 
@@ -709,20 +849,20 @@ def cpx_file():
 	Implémentation : Marchal Tom (v.1 06/03/21)
 	"""
 	#create coordinate of the map
-	map_x = random.randint(20,60)
-	map_y = random.randint(20,60)
+	map_x = random.randint(20,40)
+	map_y = random.randint(20,40)
 	#create the coordinate of the anthills
-	anthill_blue= [random.randint(1,map_x),  random.randint(1,map_y)]
-	anthill_red= [random.randint(1,map_x),  random.randint(1,map_y)]
+	anthill_blue= [random.randint(1,map_x),  random.randint(1,int(map_y/3))]
+	anthill_red= [random.randint(1,map_x),  random.randint(int(map_y/3*2),int(map_y))]
 	#create the number of clods
 	clods_number = random.randint(15,int(((map_x+map_y)/2)))
 	#create the coordinate of the clods
 	clods = []
 	for clod in range (0,clods_number+1):
-		clod = [random.randint(0,map_x),  random.randint(0,map_y)]
+		clod = [random.randint(1,map_x),  random.randint(1,map_y)]
 		#verify if the coordinate != the anthills coordinates
 		while clod[0] == anthill_blue[0] or clod[0] == anthill_red[0] and clod[1] == anthill_blue[1] or clod[1] == anthill_red[1]:
-			clod = [random.randint(0,map_x),  random.randint(0,map_y)]
+			clod = [random.randint(1,map_x),  random.randint(1,map_y)]
 		#append the weight of the clod
 		clod.append(random.randint(1,3))
 		clods.append(clod)
@@ -735,6 +875,7 @@ def cpx_file():
 	for clod in clods:
 		fh.write('%d %d %d \n'%(clod[0],clod[1],clod[2]))
 	fh.close()
+	
 def create_server_socket(local_port, verbose):
     """Creates a server socket.
     
