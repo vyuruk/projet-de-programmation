@@ -1,4 +1,5 @@
-import blessed, math, os, time, random, socket, time, remote_play
+import blessed, math, os, time, random, socket, time
+#import remote play
 
 term = blessed.Terminal()
 
@@ -595,7 +596,6 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	#Clear terminal
 	print(term.home + term.clear)
 
-	
 	row = 0
 	col = 0
 	line = 0
@@ -603,17 +603,10 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	display_line = 1
 	number_grid = 0
 
-	
-
 	#determine the number of columns and rows
 	
 	columns = int(map[0])
 	rows = int(map[1])
-
-
-	print(columns)
-	print(rows)
-	print(clod_dico)
 	
 	#Columns number (cell number) * 4 = pixel number
 	#Rows number (cell number) * 2 = pixel number
@@ -701,10 +694,8 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the anthills
 	for anthill in anthill_dico:
-		x = anthill_dico[anthill][0]
-		y = anthill_dico[anthill][1]
-		x = pixel_to_cell(x,y,shift)[0]
-		y = pixel_to_cell(x,y,shift)[1]
+		x = pixel_to_cell_x(anthill_dico[anthill][0],shift)
+		y = pixel_to_cell_y(anthill_dico[anthill][1],shift)
 		if anthill == 'anthill_blue':
 			print(term.move_xy(x,y) + term.blue + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
 		else:
@@ -712,10 +703,8 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the ants
 	for ant in ant_dico:
-		x = ant[0]
-		y = ant[1]
-		x = pixel_to_cell(x,y,shift)[0]
-		y = pixel_to_cell(x,y,shift)[1]
+		x = pixel_to_cell_x(ant[0],shift)
+		y = pixel_to_cell_y(ant[1],shift)
 		if ant_dico[ant]['team'] == 'blue':
 			if ant_dico[ant]['clod']:
 				print(term.move_xy(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
@@ -729,10 +718,8 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the clods
 	for clod in clod_dico:
-		x = clod[0]
-		y = clod[1]
-		x = pixel_to_cell(x,y,shift)[0]
-		y = pixel_to_cell(x,y,shift)[1]
+		x = pixel_to_cell_x(clod[0],shift)
+		y = pixel_to_cell_y(clod[1],shift)
 		print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
 
 
@@ -749,18 +736,38 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 
 	print(term.move_xy(0, rows + shift + 2))
 
-def pixel_to_cell(x,y,shift):
+def Display_refresh(map, ant_dico, clod_dico, anthill_dico, movement_dico, shift):
+    """display the interface at the start of the game till the end. 
+	parameters
+	----------
+	cpx_file : The file with the data (file)
+	clod_dico: dictionary of the clod (dict)
+	anthill_dico: dictionary of anthill (dict)
+	ant_dico: dictionary of ant (dict)
+
+	Version
+	------- 
+	Specification : Antoine Boudjenah (v.1 6/04/21)
+	Implémentation : Antoine Boudjenah (v.1 6/04/21)
+	"""
+    #Dictionnaire à remplir à chaque tour, lorsqu'un joueur fait bouger des fourmis
+    for movement in movement_dico:
+        x = pixel_to_cell_x(movement[0],shift)
+        y = pixel_to_cell_y(movement[1],shift)
+        print(term.move_xy(x, y) + term.red + term.on_black + ' ' + term.normal, end='', flush=True)
+
+    
+
+def pixel_to_cell_x(x,shift):
 	"""
 	Parameters
 	----------
 	x : coordinate x (int)
-	y : coordinate y (int)
 	shift : shift of the grid (int)
 	
 	return
 	------
 	x : coordinate x (int)
-	y : coordinate y (int)
 
 	version
 	-------
@@ -768,9 +775,29 @@ def pixel_to_cell(x,y,shift):
 	Implémentation: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
 	"""
 	x = x * 4 + shift - 2
+
+	return x
+
+def pixel_to_cell_y(y,shift):
+	"""
+	Parameters
+	----------
+	y : coordinate y (int)
+	shift : shift of the grid (int)
+	
+	return
+	------
+	y : coordinate y (int)
+
+	version
+	-------
+	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
+	Implémentation: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
+	"""
+
 	y = y * 2 + shift - 1
 
-	return x,y
+	return y
 
 def data(cpx_file):
 	""" Create all the dictionnaries for the data structure.
