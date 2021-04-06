@@ -32,7 +32,7 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 		#Changer display interface par une fonction qui affiche à chaque tour
-		Display_interface(map,ant_dico,clod_dico,anthill_dico)
+		Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
 		print(ant_dico)
 		if type_1 == "human" and type_2 == "human":
 			order_player_1 = input("\n Indiquer vos ordres (P1)")
