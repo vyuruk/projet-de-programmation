@@ -1,11 +1,9 @@
-import blessed, math, os, time, random, socket, time
-#import remote play
+import blessed, math, os, time, random, socket, time, remote_play
 
 term = blessed.Terminal()
 
 def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	"""Play a Copixhe game.
-
 	Parameters
 	----------
 	CPX_file: name of CPX file (str)
@@ -13,13 +11,10 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	type_1: type of player 1 (str)
 	group_2: group of player 2 (str)
 	type_2: type of player 2 (str)
-
 	Notes
 	-----
 	Player type is either human, AI or remote.
-
 	If there is an external referee, set group id to 0 for remote player.
-
 	"""
 	cpx_file()
 	ant_dico = data(cpx_file)[0]
@@ -29,12 +24,11 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	turn = 1
 	shift = 3
 	
-	#Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
+	Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
 	
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 		#Changer display interface par une fonction qui affiche à chaque tour
-		Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
-		print(ant_dico)
+		#Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
 		if type_1 == "human" and type_2 == "human":
 			order_player_1 = input("\n Indiquer vos ordres (P1)")
 			order_player_2 = input("Indiquer vos ordres (P2) ")
@@ -100,7 +94,6 @@ def player_order(order_player_1, order_player_2):
 	----------
 	order_player_1: the order of the first player during the game(str)
 	order_player_2: the order of the second player during the game(str)
-
 	return
 	------
 	order_p1 : The order of the first player separate in a list (list)
@@ -122,7 +115,6 @@ def Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 	----------
 	Clod_number_around_anthill: Count the number of clods around the anthill(list)
 	turn : the number of turn
-
 	return
 	------
 	Is_game_over : If the game is over or not(bool)
@@ -174,13 +166,11 @@ def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 
 def drop_clod(order,ant_dico,clod_dico):
 	""" Check if the ant can drop the clod.
-
 	parameter
 	---------
 	order: The order of the player (str)
 	ant_dico: The dico of the ants (dict)
 	clod_dico: The dico of the clods (dict)
-
 	version
 	-------
 	Specification : Marchal Tom (v.1 26/02/21)
@@ -212,13 +202,11 @@ def drop_clod(order,ant_dico,clod_dico):
 					ant_dico[ant]['team'] = False
 def lift_clod(order,ant_dico,clod_dico):
 	""" Check if the ant can lift the clod.
-
 	parameter
 	---------
 	order: The order of the player (str)
 	ant_dico: The dico of the ants (dict)
 	clod_dico: The dico of the clods (dict)
-
 	version
 	-------
 	Specification : Marchal Tom (v.1 26/02/21)
@@ -249,12 +237,10 @@ def lift_clod(order,ant_dico,clod_dico):
 					ant_dico[ant]['clod'] = True
 def Fight(order,ant_dico): 
 	""" Check if the ant can attack the other one, attack if he can.
-
 	Parameter
 	---------
 	order : The order of the player (list) 
 	ant_dico : The dico of the ants (dict)
-
 	Version
 	-------
 	Specification : Marchal Tom (v.2 19/03/21)
@@ -348,8 +334,13 @@ def Ant_movement(order, ant_dico, clod_dico, anthill_dico):
 													if ant_dico[ant]['clod'] == True:
 														for clod in clod_dico:
 																	if clod[0] == ant[0] and clod[1] == ant[1]:
+																		clod = list(clod)
 																		clod[0] = target[0]
-																		clod[0] = target[1]
+																		clod[1] = target[1]
+																		new_clod = tuple(clod)
+																		clod_dico[new_clod] = clod_dico[clod]
+																		clod_dico.pop(clod)
+																		break
 													ant = list(ant)
 													ant[0] = target[0]
 													ant[1] = target[1]
@@ -405,8 +396,13 @@ def Ant_movement(order, ant_dico, clod_dico, anthill_dico):
 													if ant_dico[ant]['clod'] == True:
 														for clod in clod_dico:
 																	if clod[0] == ant[0] and clod[1] == ant[1]:
+																		clod = list(clod)
 																		clod[0] = target[0]
-																		clod[0] = target[1]
+																		clod[1] = target[1]
+																		new_clod = tuple(clod)
+																		clod_dico[new_clod] = clod_dico[clod]
+																		clod_dico.pop(clod)
+																		break
 													ant = list(ant)
 													ant[0] = target[0]
 													ant[1] = target[1]
@@ -430,7 +426,6 @@ def Ant_movement(order, ant_dico, clod_dico, anthill_dico):
 
 def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill): 
 	""" Create an ant every 5 turns if there is nothing on the spawn coordinate and adapt the level of the ant with the number of clod around the anthill.
-
 	Parameter
 	---------
 	turn: The number of turn (int)
@@ -438,7 +433,6 @@ def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill):
 	anthill_dico : The dico of the anthills(dict)
 	clod_dico : The dico of the clods (dict)
 	Clod_number_around_anthill : Count the number of clods around the anthills (list)
-
 	Version
 	-------
 	Specification : Marchal Tom (v.1 20/02/21)
@@ -504,7 +498,6 @@ def Is_ant_dead(ant_dico):
 	parameters
 	----------
 	ant_dico: dictionary of ant (dict)
-
 	Version
 	-------
 	Specification : Antoine Boudjenah (v.1 22/02/21)
@@ -522,7 +515,6 @@ def Clod_number_around_anthill(clod_dico, anthill_dico):
 	----------
 	clod_dico: dictionary of the clod (dict)
 	anthill_dico: dictionary of anthill (dict)
-
 	return
 	------
 	nbr_cld_r: the number of clod around the red anthill(int)
@@ -586,7 +578,6 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	clod_dico: dictionary of the clod (dict)
 	anthill_dico: dictionary of anthill (dict)
 	ant_dico: dictionary of ant (dict)
-
 	Version
 	------- 
 	Specification : Antoine Boudjenah (v.2 6/04/21)
@@ -596,6 +587,7 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	#Clear terminal
 	print(term.home + term.clear)
 
+	
 	row = 0
 	col = 0
 	line = 0
@@ -603,10 +595,17 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	display_line = 1
 	number_grid = 0
 
+	
+
 	#determine the number of columns and rows
 	
 	columns = int(map[0])
 	rows = int(map[1])
+
+
+	print(columns)
+	print(rows)
+	print(clod_dico)
 	
 	#Columns number (cell number) * 4 = pixel number
 	#Rows number (cell number) * 2 = pixel number
@@ -694,8 +693,10 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the anthills
 	for anthill in anthill_dico:
-		x = pixel_to_cell_x(anthill_dico[anthill][0],shift)
-		y = pixel_to_cell_y(anthill_dico[anthill][1],shift)
+		x = anthill_dico[anthill][0]
+		y = anthill_dico[anthill][1]
+		x = pixel_to_cell(x,y,shift)[0]
+		y = pixel_to_cell(x,y,shift)[1]
 		if anthill == 'anthill_blue':
 			print(term.move_xy(x,y) + term.blue + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
 		else:
@@ -703,8 +704,10 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the ants
 	for ant in ant_dico:
-		x = pixel_to_cell_x(ant[0],shift)
-		y = pixel_to_cell_y(ant[1],shift)
+		x = ant[0]
+		y = ant[1]
+		x = pixel_to_cell(x,y,shift)[0]
+		y = pixel_to_cell(x,y,shift)[1]
 		if ant_dico[ant]['team'] == 'blue':
 			if ant_dico[ant]['clod']:
 				print(term.move_xy(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
@@ -718,8 +721,10 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the clods
 	for clod in clod_dico:
-		x = pixel_to_cell_x(clod[0],shift)
-		y = pixel_to_cell_y(clod[1],shift)
+		x = clod[0]
+		y = clod[1]
+		x = pixel_to_cell(x,y,shift)[0]
+		y = pixel_to_cell(x,y,shift)[1]
 		print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
 
 
@@ -735,7 +740,6 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 		# 	print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
 
 	print(term.move_xy(0, rows + shift + 2))
-
 def Display_refresh(map, ant_dico, clod_dico, anthill_dico, movement_dico, shift):
     """display the interface at the start of the game till the end. 
 	parameters
@@ -755,53 +759,30 @@ def Display_refresh(map, ant_dico, clod_dico, anthill_dico, movement_dico, shift
         x = pixel_to_cell_x(movement[0],shift)
         y = pixel_to_cell_y(movement[1],shift)
         print(term.move_xy(x, y) + term.red + term.on_black + ' ' + term.normal, end='', flush=True)
-
-    
-
-def pixel_to_cell_x(x,shift):
+def pixel_to_cell(x,y,shift):
 	"""
 	Parameters
 	----------
 	x : coordinate x (int)
+	y : coordinate y (int)
 	shift : shift of the grid (int)
 	
 	return
 	------
 	x : coordinate x (int)
-
+	y : coordinate y (int)
 	version
 	-------
 	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
 	Implémentation: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
 	"""
 	x = x * 4 + shift - 2
-
-	return x
-
-def pixel_to_cell_y(y,shift):
-	"""
-	Parameters
-	----------
-	y : coordinate y (int)
-	shift : shift of the grid (int)
-	
-	return
-	------
-	y : coordinate y (int)
-
-	version
-	-------
-	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
-	Implémentation: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
-	"""
-
 	y = y * 2 + shift - 1
 
-	return y
+	return x,y
 
 def data(cpx_file):
 	""" Create all the dictionnaries for the data structure.
-
 	Parameters
 	----------
 	cpx_file: name of cpx file(str)
@@ -812,7 +793,6 @@ def data(cpx_file):
 	Anthill_dico: The anthill dico(dict)
 	ant_dico: The ant dico (dict)
 	map : The coordinate of the map (list)
-
 	version
 	-------
 	Specification: Marchal Tom (v.2 04/04/21)
@@ -1177,7 +1157,6 @@ def notify_remote_orders(connection, orders):
 
 def get_remote_orders(connection):
     """Returns orders from a remote player.
-
     Parameters
     ----------
     connection: sockets to receive/send orders (dict of socket.socket)
@@ -1185,7 +1164,6 @@ def get_remote_orders(connection):
     Returns
     ----------
     player_orders: orders given by remote player (str)
-
     Raises
     ------
     IOError: if remote player cannot be reached
@@ -1205,7 +1183,6 @@ def get_remote_orders(connection):
     return orders
 def IA_naive(ant_dico, number_of_the_player):
 	""" The IA will play instead of a human, it will move the ants.
-
 	
 	Spécification
 	-------------
@@ -1214,7 +1191,6 @@ def IA_naive(ant_dico, number_of_the_player):
 	return
 	------
 	order : The order of the IA (list)
-
 	Version
 	-------
 	Spécification : Marchal Tom (28/03)
@@ -1245,3 +1221,4 @@ def IA_naive(ant_dico, number_of_the_player):
 def get_AI_sentence():
 	""""""
 main_game(cpx_file,input('The number of the first group'),input('The type of user (P1)'),input('The number of the second group'), input('The type of user (P2)'))
+
