@@ -1,10 +1,12 @@
-import blessed, math, os, time, random, socket, time
-#import remote play
+import blessed, math, os, time, random, remote_play
 
 term = blessed.Terminal()
 
+
+
 def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	"""Play a Copixhe game.
+
 	Parameters
 	----------
 	CPX_file: name of CPX file (str)
@@ -12,10 +14,13 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	type_1: type of player 1 (str)
 	group_2: group of player 2 (str)
 	type_2: type of player 2 (str)
+
 	Notes
 	-----
 	Player type is either human, AI or remote.
+
 	If there is an external referee, set group id to 0 for remote player.
+
 	"""
 	cpx_file()
 	ant_dico = data(cpx_file)[0]
@@ -24,71 +29,111 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	map = data(cpx_file)[3]
 	turn = 1
 	shift = 3
+
+	# for anthill in anthill_dico:
+	# 	print(anthill_dico[anthill])
+
+	# inp = input('Q ? :')
+	# inp = inp.split(" ")
+	# inp = (int(inp[0]), int(inp[1]))
+
+	# print(inp)
+	# for anthill in anthill_dico:
+	# 	if anthill_dico[anthill] == inp:
+	# 		print('yes')
+
+
+	if type_1 == "human" and type_2 == "human":
+		Is_human = True
+
+	# if type_1 == "IA" and type_2 == "IA":
+	# 	order_player_1 = IA_naive(ant_dico,"p1")
+	# 	order_player_2 = IA_naive(ant_dico,"p2")
+	# 	order = player_order(order_player_1,order_player_2)
 	
-	#Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
-	
-	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
-		#Changer display interface par une fonction qui affiche à chaque tour
-		Display_interface(map,ant_dico,clod_dico,anthill_dico,shift)
-		print(ant_dico)
-		if type_1 == "human" and type_2 == "human":
-			order_player_1 = input("\n Indiquer vos ordres (P1)")
-			order_player_2 = input("Indiquer vos ordres (P2) ")
-			order = player_order(order_player_1,order_player_2)
-		if type_1 == "IA" and type_2 == "IA":
-			order_player_1 = IA_naive(ant_dico,"p1")
-			order_player_2 = IA_naive(ant_dico,"p2")
-			order = player_order(order_player_1,order_player_2)
+	Display_interface(map, ant_dico, clod_dico, anthill_dico, shift)
+	Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
+
+	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):	
+
+		if Is_human:
+			order_player_1 = input("Indiquer vos ordres (P1)")
+			order_player_2 = input("Indiquer vos ordres (P2)")
+			orders = player_order(order_player_1,order_player_2)
+
+		is_remote = False
 		# create connection
 		if type_1 == 'remote':
 			connection = remote_play.create_connection(group_2, group_1, verbose=True)
+			is_remote = True
 		if type_2 == 'remote':
 			connection = remote_play.create_connection(group_1, group_2, verbose=True)
+			is_remote = True
+		if is_remote:
+			# get player types
+			types = {1:type_1, 2:type_2}
 
-		# get player types
-		types = {1:type_1, 2:type_2}
+			# main loop (until one of both players says "stop")
+			sentences = {1:'', 2:''}
+			while sentences[1] != 'Stop' and sentences[2] != 'Stop':
+				# get player sentences
+				for player_id in (1, 2):
+					# get player sentence
+					if types[player_id] == 'AI':
+						sentences[player_id] = get_AI_sentence()
+					else:
+						sentences[player_id] = remote_play.get_remote_orders(connection)
 
-		# main loop (until one of both players says "stop")
-		sentences = {1:'', 2:''}
-		while sentences[1] != 'Stop' and sentences[2] != 'Stop':
-			# get player sentences
-			for player_id in (1, 2):
-				# get player sentence
-				if types[player_id] == 'AI':
-					sentences[player_id] = get_AI_sentence()
-				else:
-					sentences[player_id] = remote_play.get_remote_orders(connection)
-
-				# notify other player, if necessary
-				if types[3-player_id] == 'remote':
-					remote_play.notify_remote_orders(connection, sentences[player_id])
+					# notify other player, if necessary
+					if types[3-player_id] == 'remote':
+						remote_play.notify_remote_orders(connection, sentences[player_id])
+					
+				# use player sentences
+				for player_id in (1, 2):
+					print('Player %d said "%s".' % (player_id, sentences[player_id]))
+					
+				# wait 3 seconds
+				time.sleep(3)
+				print('\n------------------------\n')
 				
-			# use player sentences
-			for player_id in (1, 2):
-				print('Player %d said "%s".' % (player_id, sentences[player_id]))
-				
-			# wait 3 seconds
-			time.sleep(3)
-			print('\n------------------------\n')
-			
-		# close connection
-		remote_play.close_connection(connection)
+			# close connection
+			remote_play.close_connection(connection)
 
-		lift_clod(order,ant_dico,clod_dico)
-		drop_clod(order,ant_dico,clod_dico)
-		Fight(order,ant_dico)
-		Ant_movement(order, ant_dico, clod_dico, ant_dico)
-		
-		# création nouvelle fourmis 
+		for team in range(2):
+			for order in orders[team]:
+				if 'lift' in order:
+					#LEVER
+					order = [order]
+					Lift_clod(orders[team],ant_dico,clod_dico)
+				elif 'drop' in order:
+					#POSER
+					order = [order]
+					Drop_clod(order,ant_dico,clod_dico)
+				elif '*' in order:
+					#ATTAQUER
+					order = [order]
+					Fight(order,ant_dico)
+				elif '@' in order:
+					#BOUGER
+					order = [order]
+					Ant_movement(map, order, ant_dico, clod_dico, ant_dico, shift, team)
+
+		#Création nouvelle fourmis
 		Is_ant_dead(ant_dico) 
-		New_ant(turn,ant_dico,anthill_dico,clod_dico,Clod_number_around_anthill)
+		#New_ant(turn,ant_dico,anthill_dico,clod_dico,Clod_number_around_anthill)
 
 		turn += 1
 		time.sleep(1.00)
+
+		Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
+
 	End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn)
 	#disconnect
 	"""remote_play.close_connection(connection)"""
 
+
+
+##################
 def player_order(order_player_1, order_player_2):
 	"""the function that will allow players to give orders during the game
 	
@@ -96,6 +141,7 @@ def player_order(order_player_1, order_player_2):
 	----------
 	order_player_1: the order of the first player during the game(str)
 	order_player_2: the order of the second player during the game(str)
+
 	return
 	------
 	order_p1 : The order of the first player separate in a list (list)
@@ -117,6 +163,7 @@ def Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 	----------
 	Clod_number_around_anthill: Count the number of clods around the anthill(list)
 	turn : the number of turn
+
 	return
 	------
 	Is_game_over : If the game is over or not(bool)
@@ -146,7 +193,7 @@ def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 	Version
 	-------
 	Specification : Yuruk Valentin, Marchal Tom (v.2 16/32/21)
-	Implementation : Yuruk Valentin, Antoine Boudjenah (V.2 16/03/21)
+	Implementation : Yuruk Valentin, Antoine Boudjenah (V.3 17/04/21)
 	"""
 
 	#R if red team win, B if bleu team win, E if there's no winner(bool)
@@ -164,349 +211,278 @@ def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 		#Red team win
 		print("Red team is the winner")	
 	elif turn == 200:
+		if nbr_cld_r == nbr_cld_b:
 			print("There's no winner")
+		elif nbr_cld_r > nbr_cld_b:
+			#Red team win
+			print("Red team is the winner")	
+		else:
+			#Blue team win
+			print("Blue team is the winner")
 
-def drop_clod(order,ant_dico,clod_dico):
+def Drop_clod(orders,ant_dico,clod_dico):
 	""" Check if the ant can drop the clod.
-	parameter
-	---------
-	order: The order of the player (str)
-	ant_dico: The dico of the ants (dict)
-	clod_dico: The dico of the clods (dict)
-	version
-	-------
-	Specification : Marchal Tom (v.1 26/02/21)
-	Implémentation : Marchal Tom (v.1 26/03/21)
-	"""
-	order_p1 = order[0]
-	order_p2 = order[1]
-	for order in order_p1:
-		if 'drop' in order:
-			ant = order[:4]
-			ant_x = ant[:1]
-			ant_y = ant[3:]
-			ant = (ant_x,ant_y)
-			for clod in clod_dico :
-				#check if the ant carry a clod
-				if clod[0] == ant[0] and clod[1] == ant[1]:
-					#drop the clod
-					ant_dico[ant]['team'] = False
-	for order in order_p2:
-		if 'drop' in order:
-			ant = order[:4]
-			ant_x = ant[:1]
-			ant_y = ant[3:]
-			ant = (ant_x,ant_y)
-			for clod in clod_dico :
-				#check if the ant carry a clod
-				if clod[0] == ant[0] and clod[1] == ant[1]:
-					#drop the clod
-					ant_dico[ant]['team'] = False
-def lift_clod(order,ant_dico,clod_dico):
-	""" Check if the ant can lift the clod.
-	parameter
-	---------
-	order: The order of the player (str)
-	ant_dico: The dico of the ants (dict)
-	clod_dico: The dico of the clods (dict)
-	version
-	-------
-	Specification : Marchal Tom (v.1 26/02/21)
-	Implémentation : Marchal Tom (v.1 26/03/21)
-	"""
-	order_p1 = order[0]
-	order_p2 = order[1]
-	for order in order_p1:
-		if 'drop' in order:
-			ant = order[:4]
-			ant_x = ant[:1]
-			ant_y = ant[3:]
-			ant = (ant_x,ant_y)
-			for clod in clod_dico:
-				#check if there is a clod 
-				if clod[0] == ant[0] and clod[1] == ant[1]:
-					ant_dico[ant]['clod'] = True
 
-	for order in order_p2:
-		if 'drop' in order:
-			ant = order[:4]
-			ant_x = ant[:1]
-			ant_y = ant[3:]
-			ant = (ant_x,ant_y)
-			for clod in clod_dico:
-				#check if there is a clod 
-				if clod[0] == ant[0] and clod[1] == ant[1]:
-					ant_dico[ant]['clod'] = True
-def Fight(order,ant_dico): 
-	""" Check if the ant can attack the other one, attack if he can.
+	parameter
+	---------
+	orders: The order of the player (list)
+	ant_dico: The dico of the ants (dict)
+	clod_dico: The dico of the clods (dict)
+
+	version
+	-------
+	Specification : Marchal Tom (v.1 26/02/21)
+	Implémentation : Marchal Tom (v.1 26/03/21), Antoine Boudjenah (v.2 17/04/21)
+	"""
+	
+	for order in orders:
+		order = order.split(':')
+		coordinate = order[0].split('-')
+		coordinate = (coordinate[0],coordinate[1])
+		#Si une fourmi existe à cet endroit et qu'elle porte une motte de terre
+		if Check_something(ant_dico, coordinate, 'clod', True):
+			#On dépose la motte de terre
+			ant_dico[coordinate]['clod'] = False
+
+def Lift_clod(orders,ant_dico,clod_dico):
+	""" 
+	Allow an ant to lift a clod
+
+	parameter
+	---------
+	orders: The order of the player (list)
+	ant_dico: The dico of the ants (dict)
+	clod_dico: The dico of the clods (dict)
+
+	version
+	-------
+	Specification : Marchal Tom (v.1 26/02/21)
+	Implémentation : Marchal Tom (v.1 26/03/21), Antoine Boudjenah (v.2 17/04/21)
+	"""
+	for order in orders:
+		order = order.split(':')
+		coordinate = order[0].split('-')
+		coordinate = (int(coordinate[0]),int(coordinate[1]))
+		#Si une fourmi existe à cet endroit
+		if Check_something(ant_dico, coordinate):
+			#Si il y a une motte de terre à cet endroit
+			if Check_something(clod_dico, coordinate):
+				#Si la fourmi est assez forte
+				strength = ant_dico[coordinate]['strength']
+				weight = clod_dico[coordinate]
+				if strength >= weight:
+					ant_dico[coordinate]['clod'] = True
+
+def Fight(orders, ant_dico): 
+	""" Check if the ant can attack the other one, create a list of the ant who take damage if he can.
+
 	Parameter
 	---------
-	order : The order of the player (list) 
+	orders : The order of the player (list) 
 	ant_dico : The dico of the ants (dict)
+
 	Version
 	-------
 	Specification : Marchal Tom (v.2 19/03/21)
-	Implémentation : Valentin Yuruk, Marchal Tom (v.1 26/03/21)
+	Implémentation : Valentin Yuruk, Marchal Tom (v.1 26/03/21), Antoine Boudjenah (v.2 17/04/21)
 	"""
-	order_p1 = order[0]
-	order_p2 = order[1]
-	for order in order_p1:
-		if '*' in order:
-			fighter = order[:4]
-			fighter_x = fighter[:1]
-			fighter_y = fighter[3:]
-			fighter = (fighter_x,fighter_y)
-			target = order[7:]
-			target_x = target[:1]
-			target_y = target[3:]
-			target = (target_x,target_y)
-			for ant in ant_dico:
-				if fighter[0] ==  ant[0] and fighter[1] == ant[1]:
-					for b in ant_dico:
-						if target[0]== b[0] and target[1] == b[1]:
-							distance_x = abs(target[0] - fighter[0])
-							distance_y = abs(target[1] - fighter[1])
-							if ant_dico[ant]['scope'] <= distance_x and ant_dico[ant]['scope'] <= distance_y:
-								damage = ant_dico[ant]['strength']
-								ant_dico[target]['life'] -= damage
-	for order in order_p2:
-		if '*' in order:
-			fighter = order[:4]
-			fighter_x = fighter[:1]
-			fighter_y = fighter[3:]
-			fighter = (fighter_x,fighter_y)
-			target = order[7:]
-			target_x = target[:1]
-			target_y = target[3:]
-			target = (target_x,target_y)
-			for ant in ant_dico:
-				if fighter[0] ==  ant[0] and fighter[1] == ant[1]:
-					for b in ant_dico:
-						if target[0]== b[0] and target[1] == b[1]:
-							distance_x = abs(target[0] - fighter[0])
-							distance_y = abs(target[1] - fighter[1])
-							if ant_dico[ant]['scope'] <= distance_x and ant_dico[ant]['scope'] <= distance_y:
-								damage = ant_dico[ant]['strength']
-								ant_dico[target]['life'] -= damage
+	for order in orders:
+		order = order.split(':*')
+		coordinate = order[0]
+		target = order[1]
+		coordinate = coordinate.split('-')
+		coordinate = (int(coordinate[0]),int(coordinate[1]))
+		target = target.split('-')
+		target = (int(target[0]),int(target[1]))
+		#On vérifie qu'il y a une fourmi aux coordonnées
+		if Check_something(ant_dico, coordinate):
+			#On vérifie qu'il y a une fourmi sur aux coordonnées de la cible
+			if Check_something(ant_dico, target):
+				#On vérifie si la cible est à portée de tir
+				distance_x = abs(target[0] - coordinate[0])
+				distance_y = abs(target[1] - coordinate[1])
+				scope = ant_dico[coordinate]['scope']
+				if scope <= distance_x and scope <= distance_y:
+					damage = ant_dico[coordinate]['strength']
+					life = ant_dico[target]['life']
+					life = life - damage
+					ant_dico[target]['life'] = life
 
-def Ant_movement(order, ant_dico, clod_dico, anthill_dico): 
-	""" Check if the ant can move where the order indicate.
+def Check_something(dico, coordinate, key='###', result='###'):
+	"""
+	Check many things, like if something is in a case or if something has an attribut to check
+
 	Parameter
 	---------
-	order : The order of the player (list)
+	dico : Dictionnary of the thing to check
+	coordinate : Coordinates where to look (list)
+
+	key : Key to acces in the dico (string)
+	result : To check if the element finded is equal to the element wanted
+
+
+	Return
+	-------
+	Check_something : True if character is validated, False otherwise (bool)
+
+	Version
+	-------
+	Spécification : Antoine Boudjenah (v.1 17/04/21)
+	Implémentation : Antoine Boudjenah (v.1 17/04/21)
+	"""
+	#### NE MARCHE PAS AVEC ANTHILL
+	Check_something = False
+	for element in dico:
+		if coordinate[0] == element[0] and coordinate[1] == element[1]:
+			if key != '###':
+				if dico[element][key] == result:
+						Check_something = True
+						break
+			else:
+				Check_something = True
+				break
+	return Check_something
+
+def Is_in_grid(map, coordinate):
+	"""
+	Check if coordinates are in the grid or not
+
+	Parameter
+	---------
+	map : map :  Data of the map (list)
+	coordinate : Coordinate to check (list)
+
+	Return
+	-------
+	Is_in_grid : True if coordinates are in the grid, False otherwise (bool)
+
+	Version
+	-------
+	Specification : Antoine Boudjenah (v.1 17/04/21)
+	Implémentation: Antoine Boudjenah (v.1 17/04/21)
+	"""
+	columns = int(map[0])
+	rows = int(map[1])
+
+	Is_in_grid = False
+	if coordinate[0] > 0 and coordinate[0] < columns + 1:
+		if coordinate[1] > 0 and coordinate[1] < rows + 1:
+			Is_in_grid = True
+	
+	return Is_in_grid
+
+def Is_target_valid(coordinate, target):
+	"""
+	Check if the target is valid or not
+
+	Parameter
+	---------
+	Coordinate : Where the ant is currently
+	Target : Where the ant would like to move
+
+	Return
+	-------
+	Is_target_valid : True if the ant can move at theses coorinates, False otherwise (bool)
+
+	Version
+	-------
+	Specification : Antoine Boudjenah (v.1 17/04/21)
+	Implémentation: Antoine Boudjenah (v.1 17/04/21)
+	"""
+	Is_target_valid = False
+	if abs(target[0] - coordinate[0]) == 0 or 1:
+		if abs(target[1] - coordinate[1]) == 0 or 1:
+			Is_target_valid = True
+			
+	return Is_target_valid
+def Is_anthill(anthill_dico, coordinate, team):
+	"""
+	Check if an enemi anthill is on coordinates
+
+	Parameter
+	---------
+	anthill_dico : The dico oh the anthills (dict)
+	coordinate : 
+	team :
+
+	"""
+	Is_anthill = False
+	if team == 'blue':
+		team = 'anthill_red'
+	else:
+		team = 'anthill_blue'
+	for anthill in anthill_dico:
+		ennemi_anthill = anthill_dico[anthill]
+		if ennemi_anthill == coordinate:
+			Is_anthill = True
+	return Is_anthill
+
+def Ant_movement(map, orders, ant_dico, clod_dico, anthill_dico, shift, team): 
+	""" 
+	Check if the ant can move where the order indicate.
+
+	Parameter
+	---------
+	map :  Data of the map (list)
+	orders : The order of the player (list)
 	ant_dico : The dico of the ants (dict)
 	clod_dico : The dico of the clods(dict)
-	anthill_dico = the dico of the anthills(dict)
+	anthill_dico : the dico of the anthills(dict)
+
 	Version
 	-------
 	Specification : Marchal Tom (v.2 19/03/21)
-	Implémentation: Marchal Tom (v.2 02/04/21)
-	"""
-	order_p1 = order[0]
-	order_p2 = order[1]
-	for order in order_p1:
-		is_there_new_ant = False
-		if '@' in order:
-			order = order.split(':@')
-			coordinate = order[0]
-			target = order[1]
-			coordinate = coordinate.split('-')
-			coordinate_x = int(coordinate[0])
-			coordinate_y = int(coordinate[1])
-			coordinate = (coordinate_x,coordinate_y)
-			target = target.split('-')
-			target_x = int(target[0])
-			target_y = int(target[1])
-			target = (target_x,target_y)
-			#check if the ant exist
-			for ant in ant_dico:
-				if coordinate[0] == ant[0] and coordinate[1] == ant[1]:
-					#check if there is no ant at the destination
-					for a in ant_dico:
-						if target[0] != a[0] and target[1] != a[1]:
-							#check if there is a clod where the ant will move
-							for clod in clod_dico:
-								if target[0] != clod[0]  and target[1] != clod[1]:
-									#check if the ant doesn't move at the rival anthill
-									for anthill in anthill_dico:
-										if ant in ant_dico:
-											if ant_dico[ant]['team'] not in anthill:
-												if target[0] != anthill[0]  and target[1] != anthill[1]:
-													#check if the ant carry a clod
-													if ant_dico[ant]['clod'] == True:
-														for clod in clod_dico:
-																	if clod[0] == ant[0] and clod[1] == ant[1]:
-																		clod[0] = target[0]
-																		clod[0] = target[1]
-													ant = list(ant)
-													ant[0] = target[0]
-													ant[1] = target[1]
-													ant = tuple(ant)
-													new_ant = ant
-													is_there_new_ant = True
-						
-								#check if the ant doesn't carry a clod when there is a clod a the target
-								else:
-									if target not in ant_dico:
-										if ant_dico[coordinate]['clod'] == False:
-											ant = list(ant)
-											ant[0] = target[0]
-											ant[1] = target[1]
-											ant = tuple(ant)
-											new_ant = ant
-											is_there_new_ant = True
-	if is_there_new_ant:
-		ant_dico[new_ant] = ant_dico[coordinate]
-		ant_dico.pop(coordinate)
-					
-										
-								
-	for order in order_p2:
-		if '@' in order:
-			order = order.split(':@')
-			coordinate = order[0]
-			target = order[1]
-			coordinate = coordinate.split('-')
-			coordinate_x = int(coordinate[0])
-			coordinate_y = int(coordinate[1])
-			coordinate = (coordinate_x,coordinate_y)
-			target = target.split('-')
-			target_x = int(target[0])
-			target_y = int(target[1])
-			target = (target_x,target_y)
-			is_there_new_ant = False
-			#check if the ant exist
-			for ant in ant_dico:
-				if coordinate[0] == ant[0] and coordinate[1] == ant[1]:
-					#check if there is no ant at the destination
-					for a in ant_dico:
-						if target[0] != a[0] and target[1] != a[1]:
-							#check if there is a clod where the ant will move
-							for clod in clod_dico:
-								if target[0] != clod[0]  and target[1] != clod[1]:
-									#check if the ant doesn't move at the rival anthill
-									for anthill in anthill_dico:
-										if ant in ant_dico:
-											if ant_dico[ant]['team'] not in anthill:
-												if target[0] != anthill[0]  and target[1] != anthill[1]:
-													#check if the ant carry a clod
-													if ant_dico[ant]['clod'] == True:
-														for clod in clod_dico:
-																	if clod[0] == ant[0] and clod[1] == ant[1]:
-																		clod[0] = target[0]
-																		clod[0] = target[1]
-													ant = list(ant)
-													ant[0] = target[0]
-													ant[1] = target[1]
-													ant = tuple(ant)
-													new_ant = ant
-													is_there_new_ant = True
-						
-								#check if the ant doesn't carry a clod when there is a clod a the target
-								else:
-									if target not in ant_dico:
-										if ant_dico[coordinate]['clod'] == False:
-											ant = list(ant)
-											ant[0] = target[0]
-											ant[1] = target[1]
-											ant = tuple(ant)
-											new_ant = ant
-											is_there_new_ant = True
-	if is_there_new_ant:
-		ant_dico[new_ant] = ant_dico[coordinate]
-		ant_dico.pop(coordinate)
-
-def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill): 
-	""" Create an ant every 5 turns if there is nothing on the spawn coordinate and adapt the level of the ant with the number of clod around the anthill.
-	Parameter
-	---------
-	turn: The number of turn (int)
-	ant_dico: The dico of the ants (dict)
-	anthill_dico : The dico of the anthills(dict)
-	clod_dico : The dico of the clods (dict)
-	Clod_number_around_anthill : Count the number of clods around the anthills (list)
-	Version
-	-------
-	Specification : Marchal Tom (v.1 20/02/21)
-	Implémentation : Marchal Tom (v.2 02/04/21)
-	"""
-	#collect the number of clods around the anthills
-	clods = Clod_number_around_anthill(clod_dico,anthill_dico)
-	if clods == None:
-		clods = [0,0]
-	clods_blue = clods[0]
-	clods_red = clods[1]
-	if turn % 5 == 0:
-		#create an ant
-		for anthill in anthill_dico:
-			if anthill == 'anthill_blue':
-				if (anthill[0],anthill[1]) not in ant_dico:
-					if clods_blue <= 2:
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 3
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 1
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
-					if clods_blue <= 5 and clods_blue > 3:
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 5
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 2
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'		
-					if clods_blue <= 8 and clods_blue > 6:
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 7
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 3
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
-						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
-			if anthill == 'anthill_red':
-				if (anthill[0],anthill[1]) not in ant_dico:
-					if clods_red <= 2:
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 3
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 1
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
-					if clods_red <= 5 and clods_red > 3:
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 5
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 2
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
-					if clods_red <= 8 and clods_red > 6:
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 7
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 3
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
-						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
-def Is_ant_dead(ant_dico):
-	"""verify if a ant is dead or not.
-	parameters
-	----------
-	ant_dico: dictionary of ant (dict)
-	Version
-	-------
-	Specification : Antoine Boudjenah (v.1 22/02/21)
-	Implementation: Antoine Boudjenah (V.1 15/03/21)
+	Implémentation: Marchal Tom (v.2 02/04/21), Antoine Boudjenah (v.3 17/04/21)
 	"""
 
-	for cle in ant_dico:
-		life = ant_dico[cle]['life']
-		if life == 0:
-			ant_dico.pop[cle]
+	for order in orders:
+		if team == 0 : team = 'blue'
+		else : team = 'red'
+		order = order.split(':@')
+		coordinate = order[0]
+		target = order[1]
+		coordinate = coordinate.split('-')
+		coordinate = (int(coordinate[0]),int(coordinate[1]))
+		target = target.split('-')
+		target = (int(target[0]),int(target[1]))
 
-def Clod_number_around_anthill(clod_dico, anthill_dico):
+		#Verifier si la fourmi existe dans la bonne équipe
+		if Check_something(ant_dico, coordinate, 'team', team):
+			#On regarde si il n'y a rien d'illégal à la destination
+			#On commence par regarder si la destination se trouve à l'intérieur du plateau
+			if Is_in_grid(map, target):
+				#On vérifie que l'objectif est valide ( distance )
+				if Is_target_valid(coordinate, target): #Si objectif valide
+					#On vérifie qu'il n'y ait pas de fourmi à la destination
+					if not Check_something(ant_dico, target): #Si pas de fourmi
+						#On vérifie qu'il n'y ait pas de fourmilière ennemie à la destination
+						if not Is_anthill(anthill_dico, target, team):
+							#Si une motte de terre sur la même case
+							if Check_something(clod_dico, coordinate):
+								#Si la fourmi porte la motte de terre
+								if Check_something(ant_dico, coordinate, 'clod', True):
+									#On déplace la motte de terre avec la fourmi
+									new_position = [target[0],target[1]]
+									new_position = tuple(new_position)
+									clod_dico[coordinate] = new_position
+									clod_dico.pop(coordinate)
+							new_position = [target[0],target[1]]
+							new_position = tuple(new_position)
+							ant_dico[new_position] = ant_dico[coordinate]
+							ant_dico.pop(coordinate)
+							data = [coordinate, target]
+							for print_in_black in data:
+								x = pixel_to_cell_x(print_in_black[0], shift)
+								y = pixel_to_cell_y(print_in_black[1], shift)
+								print(term.move_xy(x, y) + term.on_black + ' ' + term.normal, end='', flush=True)	
+			
+def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill, team):
 	"""the function that will count clods around the anthills.
 	parameters
 	----------
 	clod_dico: dictionary of the clod (dict)
 	anthill_dico: dictionary of anthill (dict)
+
 	return
 	------
 	nbr_cld_r: the number of clod around the red anthill(int)
@@ -566,10 +542,10 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	"""display the interface at the start of the game till the end. 
 	parameters
 	----------
-	cpx_file : The file with the data (file)
-	clod_dico: dictionary of the clod (dict)
-	anthill_dico: dictionary of anthill (dict)
-	ant_dico: dictionary of ant (dict)
+	map : Dimensions of the map (list)
+	anthill_dico : dictionary of anthill (dict)
+	shift : The shift of the grid (int)
+
 	Version
 	------- 
 	Specification : Antoine Boudjenah (v.2 6/04/21)
@@ -684,7 +660,6 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 		else:
 			print(term.move_xy(x,y) + term.red + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
 
-	#print the ants
 	for ant in ant_dico:
 		x = pixel_to_cell_x(ant[0],shift)
 		y = pixel_to_cell_y(ant[1],shift)
@@ -705,40 +680,51 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 		y = pixel_to_cell_y(clod[1],shift)
 		print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
 
+	#print(term.move_xy(2, rows + shift + 2), "ant_dico = ", ant_dico)
 
-		############ Fonction d'affichage à chaque tour #################
-		# is_ant = False
-		# for ant in ant_dico:
-		# 	if x != ant[0] or y != ant[1]:
-		# 		is_ant = True
-
-		# if is_ant:
-		# 	x = x * 2 + shift - 1
-		# 	y = y * 4 + shift - 2
-		# 	print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
-
-	print(term.move_xy(0, rows + shift + 2))
-
-def Display_refresh(map, ant_dico, clod_dico, anthill_dico, movement_dico, shift):
-    """display the interface at the start of the game till the end. 
+def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
+	"""display the interface at the start of the game till the end. 
 	parameters
 	----------
-	cpx_file : The file with the data (file)
 	clod_dico: dictionary of the clod (dict)
-	anthill_dico: dictionary of anthill (dict)
 	ant_dico: dictionary of ant (dict)
+	shift : The shift of the grid (int)
+
 	Version
 	------- 
 	Specification : Antoine Boudjenah (v.1 6/04/21)
 	Implémentation : Antoine Boudjenah (v.1 6/04/21)
 	"""
-    #Dictionnaire à remplir à chaque tour, lorsqu'un joueur fait bouger des fourmis
-    for movement in movement_dico:
-        x = pixel_to_cell_x(movement[0],shift)
-        y = pixel_to_cell_y(movement[1],shift)
-        print(term.move_xy(x, y) + term.red + term.on_black + ' ' + term.normal, end='', flush=True)
 
-    
+	#print the ants
+	for ant in ant_dico:
+		x = pixel_to_cell_x(ant[0],shift)
+		y = pixel_to_cell_y(ant[1],shift)
+		if ant_dico[ant]['team'] == 'blue':
+			if ant_dico[ant]['clod']:
+				print(term.move_xy(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
+			else:
+				print(term.move_xy(x,y) + term.brown + term.on_blue + "." + term.normal, end='', flush=True)
+		else:
+			if ant_dico[ant]['clod']:
+				print(term.move_xy(x,y) + term.brown + term.on_red + ":" + term.normal, end='', flush=True)
+			else:
+				print(term.move_xy(x,y) + term.brown + term.on_red + "." + term.normal, end='', flush=True)
+
+	#print the anthills
+	for anthill in anthill_dico:
+		x = pixel_to_cell_x(anthill_dico[anthill][0],shift)
+		y = pixel_to_cell_y(anthill_dico[anthill][1],shift)
+		if anthill == 'anthill_blue':
+			print(term.move_xy(x,y) + term.blue + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+		else:
+			print(term.move_xy(x,y) + term.red + term.on_green + u"\u25A0" + term.normal, end='', flush=True)
+
+	#print the clods
+	for clod in clod_dico:
+		x = pixel_to_cell_x(clod[0],shift)
+		y = pixel_to_cell_y(clod[1],shift)
+		print(term.move_xy(x,y) + term.black + term.on_green + "●" + term.normal, end='', flush=True)
 
 def pixel_to_cell_x(x,shift):
 	"""
@@ -750,6 +736,7 @@ def pixel_to_cell_x(x,shift):
 	return
 	------
 	x : coordinate x (int)
+
 	version
 	-------
 	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
@@ -769,6 +756,7 @@ def pixel_to_cell_y(y,shift):
 	return
 	------
 	y : coordinate y (int)
+
 	version
 	-------
 	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
@@ -779,8 +767,88 @@ def pixel_to_cell_y(y,shift):
 
 	return y
 
+def Is_ant_dead(ant_dico):
+	"""verify if a ant is dead or not.
+	parameters
+	----------
+	ant_dico: dictionary of ant (dict)
+
+	Version
+	-------
+	Specification : Antoine Boudjenah (v.1 22/02/21)
+	Implementation: Antoine Boudjenah (V.1 15/03/21)
+	"""
+
+	for cle in ant_dico:
+		life = ant_dico[cle]['life']
+		if life == 0:
+			ant_dico.pop[cle]
+
+def Clod_number_around_anthill(clod_dico, anthill_dico):
+	"""the function that will count clods around the anthills.
+	parameters
+	----------
+	clod_dico: dictionary of the clod (dict)
+	anthill_dico: dictionary of anthill (dict)
+
+	return
+	------
+	nbr_cld_r: the number of clod around the red anthill(int)
+	nbr_cld_b: the number of clod around the blue anthill(int)
+	
+	Version
+	------- 
+	Specification : Antoine Boudjenah, Marchal Tom (v.1 22/02/21)
+	Implémentation : Marchal Tom (v.1 26/03/21)
+	"""
+	#count the clods for the blue anthill
+	anthill_b_x = anthill_dico['anthill_blue'][0]
+	anthill_b_y = anthill_dico['anthill_blue'][1]
+	nbr_cld_b = 0
+	for clod in clod_dico:
+		#check if there is a clod up or under the anthill
+		if clod[0] == anthill_b_x:
+			if clod[1] == (anthill_b_y + 1) or clod[1] == (anthill_b_y - 1):
+				nbr_cld_b += 1
+		#check if there is a clod on the left or the right of the anthill
+		if clod[1] == anthill_b_y:
+			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
+				nbr_cld_b += 1
+		#check if there is a clod up-left or up_right the anthill
+		if clod[1] == (anthill_b_y + 1):
+			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
+				nbr_cld_b += 1
+		#check if there is a clod down-left or down-right the anthill
+		if clod[1] == (anthill_b_y - 1):
+			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
+				nbr_cld_b += 1
+	
+	#count the clods for the red anthill
+	anthill_r_x = anthill_dico['anthill_red'][0]
+	anthill_r_y = anthill_dico['anthill_red'][1]
+	nbr_cld_r = 0
+	for clod in clod_dico:
+		#check if there is a clod up or under the anthill
+		if clod[0] == anthill_r_x:
+			if clod[1] == (anthill_r_y + 1) or clod[1] == (anthill_r_y - 1):
+				nbr_cld_r += 1
+		#check if there is a clod on the left or the right of the anthill
+		if clod[1] == anthill_r_y:
+			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
+				nbr_cld_r += 1
+		#check if there is a clod up-left or up_right the anthill
+		if clod[1] == (anthill_r_y + 1):
+			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
+				nbr_cld_r += 1
+		#check if there is a clod down-left or down-right the anthill
+		if clod[1] == (anthill_r_y - 1):
+			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
+				nbr_cld_r += 1
+	return nbr_cld_b, nbr_cld_r
+	
 def data(cpx_file):
 	""" Create all the dictionnaries for the data structure.
+
 	Parameters
 	----------
 	cpx_file: name of cpx file(str)
@@ -791,6 +859,7 @@ def data(cpx_file):
 	Anthill_dico: The anthill dico(dict)
 	ant_dico: The ant dico (dict)
 	map : The coordinate of the map (list)
+
 	version
 	-------
 	Specification: Marchal Tom (v.2 04/04/21)
@@ -827,20 +896,21 @@ def data(cpx_file):
 				weight = int(clod[2])
 				clod_dico[coordinate] = weight
 		nb_lines += 1
+
 	#create an ant at each anthill
 	for anthill in anthill_dico:
 		if anthill == 'anthill_blue':
 			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
 			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 3
 			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
-			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 1	
+			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 10
 			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
 			ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
 		else:
 			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
 			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 3
 			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
-			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 1	
+			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 10
 			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
 			ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
 	return ant_dico, anthill_dico, clod_dico, map
@@ -879,308 +949,11 @@ def cpx_file():
 	fh.write('clods : \n')
 	for clod in clods:
 		fh.write('%d %d %d \n'%(clod[0],clod[1],clod[2]))
-	fh.close()
-	
-def create_server_socket(local_port, verbose):
-    """Creates a server socket.
-    
-    Parameters
-    ----------
-    local_port: port to listen to (int)
-    verbose: True if verbose (bool)
-    
-    Returns
-    -------
-    socket_in: server socket (socket.socket)
-    
-    """
-    
-    socket_in = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_in.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # deal with a socket in TIME_WAIT state
+	fh.close()	
 
-    if verbose:
-        print(' binding on local port %d to accept a remote connection' % local_port)
-    
-    try:
-        socket_in.bind(('', local_port))
-    except:
-        raise IOError('local port %d already in use by your group or the referee' % local_port)
-    socket_in.listen(1)
-    
-    if verbose:
-        print('   done -> can now accept a remote connection on local port %d\n' % local_port)
-        
-    return socket_in
-
-
-def create_client_socket(remote_IP, remote_port, verbose):
-    """Creates a client socket.
-    
-    Parameters
-    ----------
-    remote_IP: IP address to send to (int)
-    remote_port: port to send to (int)
-    verbose: True if verbose (bool)
-    
-    Returns
-    -------
-    socket_out: client socket (socket.socket)
-    
-    """
-
-    socket_out = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    socket_out.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # deal with a socket in TIME_WAIT state
-    
-    connected = False
-    msg_shown = False
-    
-    while not connected:
-        try:
-            if verbose and not msg_shown:
-                print(' connecting on %s:%d to send orders' % (remote_IP, remote_port))
-                
-            socket_out.connect((remote_IP, remote_port))
-            connected = True
-            
-            if verbose:
-                print('   done -> can now send orders to %s:%d\n' % (remote_IP, remote_port))
-        except:
-            if verbose and not msg_shown:
-                print('   connection failed -> will try again every 100 msec...')
-                
-            time.sleep(.1)
-            msg_shown = True
-            
-    return socket_out
-    
-    
-def wait_for_connection(socket_in, verbose):
-    """Waits for a connection on a server socket.
-    
-    Parameters
-    ----------
-    socket_in: server socket (socket.socket)
-    verbose: True if verbose (bool)
-    
-    Returns
-    -------
-    socket_in: accepted connection (socket.socket)
-    
-    """
-    
-    if verbose:
-        print(' waiting for a remote connection to receive orders')
-        
-    socket_in, remote_address = socket_in.accept()
-    
-    if verbose:
-        print('   done -> can now receive remote orders from %s:%d\n' % remote_address)
-        
-    return socket_in            
-
-
-def create_connection(your_group, other_group=0, other_IP='127.0.0.1', verbose=False):
-    """Creates a connection with a referee or another group.
-    
-    Parameters
-    ----------
-    your_group: id of your group (int)
-    other_group: id of the other group, if there is no referee (int, optional)
-    other_IP: IP address where the referee or the other group is (str, optional)
-    verbose: True only if connection progress must be displayed (bool, optional)
-    
-    Returns
-    -------
-    connection: socket(s) to receive/send orders (dict of socket.socket)
-    
-    Raises
-    ------
-    IOError: if your group fails to create a connection
-    
-    Notes
-    -----
-    Creating a connection can take a few seconds (it must be initialised on both sides).
-    
-    If there is a referee, leave other_group=0, otherwise other_IP is the id of the other group.
-    
-    If the referee or the other group is on the same computer than you, leave other_IP='127.0.0.1',
-    otherwise other_IP is the IP address of the computer where the referee or the other group is.
-    
-    The returned connection can be used directly with other functions in this module.
-            
-    """
-    
-    # init verbose display
-    if verbose:
-        print('\n[--- starts connection -----------------------------------------------------\n')
-        
-    # check whether there is a referee
-    if other_group == 0:
-        if verbose:
-            print('** group %d connecting to referee on %s **\n' % (your_group, other_IP))
-        
-        # create one socket (client only)
-        socket_out = create_client_socket(other_IP, 42000+your_group, verbose)
-        
-        connection = {'in':socket_out, 'out':socket_out}
-        
-        if verbose:
-            print('** group %d successfully connected to referee on %s **\n' % (your_group, other_IP))
-    else:
-        if verbose:
-            print('** group %d connecting to group %d on %s **\n' % (your_group, other_group, other_IP))
-
-        # create two sockets (server and client)
-        socket_in = create_server_socket(42000+your_group, verbose)
-        socket_out = create_client_socket(other_IP, 42000+other_group, verbose)
-        
-        socket_in = wait_for_connection(socket_in, verbose)
-        
-        connection = {'in':socket_in, 'out':socket_out}
-
-        if verbose:
-            print('** group %d successfully connected to group %d on %s **\n' % (your_group, other_group, other_IP))
-        
-    # end verbose display
-    if verbose:
-        print('----------------------------------------------------- connection started ---]\n')
-
-    return connection
-        
-        
-def bind_referee(group_1, group_2, verbose=False):
-    """Put a referee between two groups.
-    
-    Parameters
-    ----------
-    group_1: id of the first group (int)
-    group_2: id of the second group (int)
-    verbose: True only if connection progress must be displayed (bool, optional)
-    
-    Returns
-    -------
-    connections: sockets to receive/send orders from both players (dict)
-    
-    Raises
-    ------
-    IOError: if the referee fails to create a connection
-    
-    Notes
-    -----
-    Putting the referee in place can take a few seconds (it must be connect to both groups).
-        
-    connections contains two connections (dict of socket.socket) which can be used directly
-    with other functions in this module.  connection of first (second) player has key 1 (2).
-            
-    """
-    
-    # init verbose display
-    if verbose:
-        print('\n[--- starts connection -----------------------------------------------------\n')
-
-    # create a server socket (first group)
-    if verbose:
-        print('** referee connecting to first group %d **\n' % group_1)        
-
-    socket_in_1 = create_server_socket(42000+group_1, verbose)
-    socket_in_1 = wait_for_connection(socket_in_1, verbose)
-
-    if verbose:
-        print('** referee succcessfully connected to first group %d **\n' % group_1)        
-        
-    # create a server socket (second group)
-    if verbose:
-        print('** referee connecting to second group %d **\n' % group_2)        
-
-    socket_in_2 = create_server_socket(42000+group_2, verbose)
-    socket_in_2 = wait_for_connection(socket_in_2, verbose)
-
-    if verbose:
-        print('** referee succcessfully connected to second group %d **\n' % group_2)        
-    
-    # end verbose display
-    if verbose:
-        print('----------------------------------------------------- connection started ---]\n')
-
-    return {1:{'in':socket_in_1, 'out':socket_in_1},
-            2:{'in':socket_in_2, 'out':socket_in_2}}
-
-
-def close_connection(connection):
-    """Closes a connection with a referee or another group.
-    
-    Parameters
-    ----------
-    connection: socket(s) to receive/send orders (dict of socket.socket)
-    
-    """
-    
-    # get sockets
-    socket_in = connection['in']
-    socket_out = connection['out']
-    
-    # shutdown sockets
-    socket_in.shutdown(socket.SHUT_RDWR)    
-    socket_out.shutdown(socket.SHUT_RDWR)
-    
-    # close sockets
-    socket_in.close()
-    socket_out.close()
-    
-    
-def notify_remote_orders(connection, orders):
-    """Notifies orders to a remote player.
-    
-    Parameters
-    ----------
-    connection: sockets to receive/send orders (dict of socket.socket)
-    orders: orders to notify (str)
-        
-    Raises
-    ------
-    IOError: if remote player cannot be reached
-    
-    """
-
-    # deal with null orders (empty string)
-    if orders == '':
-        orders = 'null'
-    
-    # send orders
-    try:
-        connection['out'].sendall(orders.encode())
-    except:
-        raise IOError('remote player cannot be reached')
-
-
-def get_remote_orders(connection):
-    """Returns orders from a remote player.
-    Parameters
-    ----------
-    connection: sockets to receive/send orders (dict of socket.socket)
-        
-    Returns
-    ----------
-    player_orders: orders given by remote player (str)
-    Raises
-    ------
-    IOError: if remote player cannot be reached
-            
-    """
-   
-    # receive orders    
-    try:
-        orders = connection['in'].recv(65536).decode()
-    except:
-        raise IOError('remote player cannot be reached')
-        
-    # deal with null orders
-    if orders == 'null':
-        orders = ''
-        
-    return orders
 def IA_naive(ant_dico, number_of_the_player):
 	""" The IA will play instead of a human, it will move the ants.
+
 	
 	Spécification
 	-------------
@@ -1189,6 +962,7 @@ def IA_naive(ant_dico, number_of_the_player):
 	return
 	------
 	order : The order of the IA (list)
+
 	Version
 	-------
 	Spécification : Marchal Tom (28/03)
@@ -1218,4 +992,5 @@ def IA_naive(ant_dico, number_of_the_player):
 
 def get_AI_sentence():
 	""""""
-main_game(cpx_file,input('The number of the first group'),input('The type of user (P1)'),input('The number of the second group'), input('The type of user (P2)'))
+
+main_game(cpx_file,1,'human',2, 'human')
