@@ -14,13 +14,10 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	type_1: type of player 1 (str)
 	group_2: group of player 2 (str)
 	type_2: type of player 2 (str)
-
 	Notes
 	-----
 	Player type is either human, AI or remote.
-
 	If there is an external referee, set group id to 0 for remote player.
-
 	"""
 	cpx_file()
 	ant_dico = data(cpx_file)[0]
@@ -141,7 +138,6 @@ def player_order(order_player_1, order_player_2):
 	----------
 	order_player_1: the order of the first player during the game(str)
 	order_player_2: the order of the second player during the game(str)
-
 	return
 	------
 	order_p1 : The order of the first player separate in a list (list)
@@ -159,11 +155,11 @@ def player_order(order_player_1, order_player_2):
 
 def Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 	"""Verify if the game is over or not.
+
 	parameters
 	----------
 	Clod_number_around_anthill: Count the number of clods around the anthill(list)
 	turn : the number of turn
-
 	return
 	------
 	Is_game_over : If the game is over or not(bool)
@@ -184,6 +180,7 @@ def Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 
 def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn): 
 	""" Finish the game and display the winner team.
+
 	Parameter
 	---------
 	Clod_number_around_anthill: Count the number of clods around the anthill(list)
@@ -228,7 +225,6 @@ def Drop_clod(orders,ant_dico,clod_dico):
 	orders: The order of the player (list)
 	ant_dico: The dico of the ants (dict)
 	clod_dico: The dico of the clods (dict)
-
 	version
 	-------
 	Specification : Marchal Tom (v.1 26/02/21)
@@ -245,15 +241,13 @@ def Drop_clod(orders,ant_dico,clod_dico):
 			ant_dico[coordinate]['clod'] = False
 
 def Lift_clod(orders,ant_dico,clod_dico):
-	""" 
-	Allow an ant to lift a clod
+	""" Allow an ant to lift a clod
 
 	parameter
 	---------
 	orders: The order of the player (list)
-	ant_dico: The dico of the ants (dict)
-	clod_dico: The dico of the clods (dict)
-
+	ant_dico: The dictionary of the ants (dict)
+	clod_dico: The dictionary of the clods (dict)
 	version
 	-------
 	Specification : Marchal Tom (v.1 26/02/21)
@@ -279,11 +273,10 @@ def Fight(orders, ant_dico):
 	Parameter
 	---------
 	orders : The order of the player (list) 
-	ant_dico : The dico of the ants (dict)
-
+	ant_dico : The dictionary of the ants (dict)
 	Version
 	-------
-	Specification : Marchal Tom (v.2 19/03/21)
+	Specification : Valentin Yuruk (v.2 15/04/21), Marchal Tom (v.1 19/03/21)
 	Implémentation : Valentin Yuruk, Marchal Tom (v.1 26/03/21), Antoine Boudjenah (v.2 17/04/21)
 	"""
 	for order in orders:
@@ -309,25 +302,20 @@ def Fight(orders, ant_dico):
 					ant_dico[target]['life'] = life
 
 def Check_something(dico, coordinate, key='###', result='###'):
-	"""
-	Check many things, like if something is in a case or if something has an attribut to check
+	"""Check many things, like if something is in a case or if something has an attribut to check
 
 	Parameter
 	---------
-	dico : Dictionnary of the thing to check
+	dico : Dictionary of the thing to check
 	coordinate : Coordinates where to look (list)
-
 	key : Key to acces in the dico (string)
 	result : To check if the element finded is equal to the element wanted
-
-
 	Return
 	-------
 	Check_something : True if character is validated, False otherwise (bool)
-
 	Version
 	-------
-	Spécification : Antoine Boudjenah (v.1 17/04/21)
+	Spécification : Valentin Yuruk, Antoine Boudjenah (v.1 17/04/21)
 	Implémentation : Antoine Boudjenah (v.1 17/04/21)
 	"""
 	#### NE MARCHE PAS AVEC ANTHILL
@@ -344,18 +332,15 @@ def Check_something(dico, coordinate, key='###', result='###'):
 	return Check_something
 
 def Is_in_grid(map, coordinate):
-	"""
-	Check if coordinates are in the grid or not
+	"""Check if coordinates are in the grid or not
 
 	Parameter
 	---------
-	map : map :  Data of the map (list)
+	map :  Data of the map (list)
 	coordinate : Coordinate to check (list)
-
 	Return
 	-------
 	Is_in_grid : True if coordinates are in the grid, False otherwise (bool)
-
 	Version
 	-------
 	Specification : Antoine Boudjenah (v.1 17/04/21)
@@ -374,16 +359,13 @@ def Is_in_grid(map, coordinate):
 def Is_target_valid(coordinate, target):
 	"""
 	Check if the target is valid or not
-
 	Parameter
 	---------
 	Coordinate : Where the ant is currently
 	Target : Where the ant would like to move
-
 	Return
 	-------
 	Is_target_valid : True if the ant can move at theses coorinates, False otherwise (bool)
-
 	Version
 	-------
 	Specification : Antoine Boudjenah (v.1 17/04/21)
@@ -398,13 +380,11 @@ def Is_target_valid(coordinate, target):
 def Is_anthill(anthill_dico, coordinate, team):
 	"""
 	Check if an enemi anthill is on coordinates
-
 	Parameter
 	---------
-	anthill_dico : The dico oh the anthills (dict)
-	coordinate : 
-	team :
-
+	anthill_dico : The dictionary of the anthills (dict)
+	coordinate : the coordinate of the anthill (int)
+	team : 
 	"""
 	Is_anthill = False
 	if team == 'blue':
@@ -420,7 +400,6 @@ def Is_anthill(anthill_dico, coordinate, team):
 def Ant_movement(map, orders, ant_dico, clod_dico, anthill_dico, shift, team): 
 	""" 
 	Check if the ant can move where the order indicate.
-
 	Parameter
 	---------
 	map :  Data of the map (list)
@@ -428,10 +407,10 @@ def Ant_movement(map, orders, ant_dico, clod_dico, anthill_dico, shift, team):
 	ant_dico : The dico of the ants (dict)
 	clod_dico : The dico of the clods(dict)
 	anthill_dico : the dico of the anthills(dict)
-
+    	team: the number of the teams (int)
 	Version
 	-------
-	Specification : Marchal Tom (v.2 19/03/21)
+	Specification : Marchal Tom (v.2 19/03/21), Valentin Yuruk ( v.3 23/04/21)
 	Implémentation: Marchal Tom (v.2 02/04/21), Antoine Boudjenah (v.3 17/04/21)
 	"""
 
@@ -482,7 +461,9 @@ def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill, 
 	----------
 	clod_dico: dictionary of the clod (dict)
 	anthill_dico: dictionary of anthill (dict)
-
+    turn: new turn in the game (int)
+    Clod_number_around_anthill: number of clods around the anthill(int)
+    team: number of the teams (int)
 	return
 	------
 	nbr_cld_r: the number of clod around the red anthill(int)
@@ -490,7 +471,7 @@ def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill, 
 	
 	Version
 	------- 
-	Specification : Antoine Boudjenah, Marchal Tom (v.1 22/02/21)
+	Specification : Antoine Boudjenah, Marchal Tom (v.1 22/02/21), Valentin Yuruk (v.2 24/02/21)
 	Implémentation : Marchal Tom (v.1 26/03/21)
 	"""
 	#count the clods for the blue anthill
@@ -545,10 +526,11 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	map : Dimensions of the map (list)
 	anthill_dico : dictionary of anthill (dict)
 	shift : The shift of the grid (int)
-
+    	clod_dico : dictionary of the clod (dict)
+    	ant_dico: dictionary of ant (dict)
 	Version
 	------- 
-	Specification : Antoine Boudjenah (v.2 6/04/21)
+	Specification : Antoine Boudjenah, (v.2 6/04/21) Valentin Yuruk (v.3 23/04/21)
 	Implémentation : Antoine Boudjenah, Marchal Tom (v.2 6/04/21)
 	""" 
 	
@@ -688,11 +670,11 @@ def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
 	----------
 	clod_dico: dictionary of the clod (dict)
 	ant_dico: dictionary of ant (dict)
+    anthill_dico: dictionary of the anthill (dict)
 	shift : The shift of the grid (int)
-
 	Version
 	------- 
-	Specification : Antoine Boudjenah (v.1 6/04/21)
+	Specification : Antoine Boudjenah (v.1 6/04/21), Valentin Yuruk (v.2 23/04/21)
 	Implémentation : Antoine Boudjenah (v.1 6/04/21)
 	"""
 
@@ -736,7 +718,6 @@ def pixel_to_cell_x(x,shift):
 	return
 	------
 	x : coordinate x (int)
-
 	version
 	-------
 	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
@@ -756,7 +737,6 @@ def pixel_to_cell_y(y,shift):
 	return
 	------
 	y : coordinate y (int)
-
 	version
 	-------
 	Specification: Antoine Boudjenah, Tom Marchal (v.1 06/04/21)
@@ -768,14 +748,13 @@ def pixel_to_cell_y(y,shift):
 	return y
 
 def Is_ant_dead(ant_dico):
-	"""verify if a ant is dead or not.
+	"""verify if an ant is dead or not.
 	parameters
 	----------
 	ant_dico: dictionary of ant (dict)
-
 	Version
 	-------
-	Specification : Antoine Boudjenah (v.1 22/02/21)
+	Specification : Antoine Boudjenah (v.1 22/02/21), Valentin Yuruk(v.2 23/04/21)
 	Implementation: Antoine Boudjenah (V.1 15/03/21)
 	"""
 
@@ -790,7 +769,6 @@ def Clod_number_around_anthill(clod_dico, anthill_dico):
 	----------
 	clod_dico: dictionary of the clod (dict)
 	anthill_dico: dictionary of anthill (dict)
-
 	return
 	------
 	nbr_cld_r: the number of clod around the red anthill(int)
@@ -848,7 +826,6 @@ def Clod_number_around_anthill(clod_dico, anthill_dico):
 	
 def data(cpx_file):
 	""" Create all the dictionnaries for the data structure.
-
 	Parameters
 	----------
 	cpx_file: name of cpx file(str)
@@ -859,7 +836,6 @@ def data(cpx_file):
 	Anthill_dico: The anthill dico(dict)
 	ant_dico: The ant dico (dict)
 	map : The coordinate of the map (list)
-
 	version
 	-------
 	Specification: Marchal Tom (v.2 04/04/21)
@@ -953,7 +929,6 @@ def cpx_file():
 
 def IA_naive(ant_dico, number_of_the_player):
 	""" The IA will play instead of a human, it will move the ants.
-
 	
 	Spécification
 	-------------
@@ -962,11 +937,10 @@ def IA_naive(ant_dico, number_of_the_player):
 	return
 	------
 	order : The order of the IA (list)
-
 	Version
 	-------
-	Spécification : Marchal Tom (28/03)
-	Implémentation : MArchal Tom (28/03)
+	Spécification : Marchal Tom (v.1 28/03/21)
+	Implémentation : Marchal Tom (v.1 28/03/21)
 	"""
 	order = ""
 	ants = []
