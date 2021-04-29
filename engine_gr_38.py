@@ -1009,7 +1009,92 @@ def IA_naive(ant_dico, number_of_the_player):
 		order += "%d-%d"%(x,y)
 	return order
 
-def get_AI_sentence():
-	""""""
+def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
+	""" Get the orders given by the IA
+	
+	Parameters
+	----------
+	ant_dico : The dico of the ants (dict)
+	anthill_dico : The dico of the anthills (dict)
+	clod_dico : The dico of the clods (dict)
+	team : The number of the IA's team (int)
+	
+	Return
+	------
+	orders : The order(s) of the IA (str)
+	
+	Version
+	-------
+	Parameters : Marchal Tom (v.1 26/04/21)
+	Implémentation : Marchal Tom ()
+	"""
+	orders = ""
+	# Récupère la couleur de l'équipe
+	if team == 1:
+		team = 'blue'
+	else:
+		team = 'red'
+	anthill = anthill_dico[team]
+	# Première étape : Récupérer un maximum de mottes de terres pour avoir un avantage sur le niveau des fourmis 
+	for ant in ant_dico:
+		if ant['team'] == team:
+			for clod in clod_dico:
+				#check if the clod is around the anthill
+				is_around = False
+				#check if there is a clod up or under the anthill
+				if clod[0] == anthill[0]:
+					if clod[1] == (anthill[1] + 1) or clod[1] == (anthill[1] - 1):
+						is_around = True
+				#check if there is a clod on the left or the right of the anthill
+				if clod[1] == anthill[1]:
+					if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+						is_around = True
+				#check if there is a clod up-left or up_right the anthill
+				if clod[1] == (anthill[1] + 1):
+					if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+						is_around = True
+				#check if there is a clod down-left or down-right the anthill
+				if clod[1] == (anthill[1] - 1):
+					if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+						is_around = True
 
+				#regarde si la motte est la plus proche
+				is_nearest = False
+				dist_x = abs(ant[0] - clod[0])
+				dist_y = abs(ant[1] - clod[1])
+				for clod
+				#dirige la fourmi vers la motte de terre
+				if is_around == False:
+					ant_x = ant[0]
+					ant_y = ant[1]
+					if ant[0] != clod[0]:
+						if ant[0] < clod[0]:
+							ant[0] += 1
+						else:
+							ant[0] -= 1
+					else:
+						if ant[1] < clod[1]:
+							ant[1] += 1
+						else:
+							ant[1] -= 1
+
+					order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1]))
+					break
+			orders += order + " "
+
+	
+
+	# Deuxième étape : Se diriger vers la fourmilière adverse
+
+	# Position de force --> Attaquer la fourmi adverse
+	# Position de faiblesse --> Rester en retrait et prendre les mottes de terres adverses
+
+	# Intercepter des fourmis adverses qui retourne vers leurs fourmilières avec une motte de terre
+
+
+
+	# Défense : Si motte de terre enlevée essayer d'intercepter la fourmi adverse et la tuer
+
+
+	return orders
 main_game(cpx_file,1,'human',2, 'human')
