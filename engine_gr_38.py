@@ -970,7 +970,6 @@ def cpx_file():
 		fh.write('%d %d %d \n'%(clod[0],clod[1],clod[2]))
 	fh.close()	
 
-
 def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 	""" Get the orders given by the IA
 	
@@ -979,7 +978,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 	ant_dico : The dico of the ants (dict)
 	anthill_dico : The dico of the anthills (dict)
 	clod_dico : The dico of the clods (dict)
-	team : The number of the IA's team (int)
+	team : The number of the IA's team (str)
 	
 	Return
 	------
@@ -1047,12 +1046,13 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 										ant[1] += 1
 									elif ant[1] > clod[1]:
 										ant[1] -= 1
-
-								order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-								break
+								if check_if_ant_has_order(ant,orders):
+									order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+									break
 							else:
-								order = "%d-%d:lift"%(ant_x,ant_y)
-								break
+								if check_if_ant_has_order(ant,orders):
+									order = "%d-%d:lift"%(ant_x,ant_y)
+									break
 					orders += order + " "
 				else:
 					ant_x = ant[0]
@@ -1060,7 +1060,8 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 					#check si la fourmi est à coté de la fourmilière
 					if ant_x == anthill[0]+1 or ant_x == anthill[0] or ant_x == anthill[0]-1 and ant_y == anthill[1]+1 or ant_y == anthill[1] or ant_y == anthill[1]-1:
 						if ant_x != anthill[1] or ant_y != anthill[1]:
-							order = "%d-%d:drop"%(ant_x,ant_y)
+							if check_if_ant_has_order(ant,orders):
+								order = "%d-%d:drop"%(ant_x,ant_y)
 					#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
 					else:
 						if ant_x < anthill[0]:
@@ -1071,11 +1072,32 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 							ant[1] += 1
 						elif ant_y > anthill[1]:
 							ant[1] -= 1
-						order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-						orders += order + " "
+						if check_if_ant_has_order(ant,orders):
+							order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+					orders += order + " "
 
-				
+
 	# Deuxième étape : Se diriger vers la fourmilière adverse
+	if team == 'blue':
+		enemy = 'red'
+	else:
+		enemy = 'blue'
+	enemy_anthill = anthill_dico[enemy] 
+	for ant in ant_dico:
+		ant_x = ant[0]
+		ant_y = ant[1]
+		if ant[0] < enemy_anthill[0]:
+			ant[0] += 1
+		else:
+			ant[0] -= 1
+
+		if ant[1] < enemy_anthill[1]:
+			ant[1] += 1
+		else:
+			ant[1] -= 1
+		if check_if_ant_has_order(ant,orders):
+			order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+			orders += order + " "
 
 	# Position de force --> Attaquer la fourmi adverse
 	# Position de faiblesse --> Rester en retrait et prendre les mottes de terres adverses
@@ -1088,4 +1110,34 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 
 
 	return orders
+
+def check_if_ant_has_order(ant,orders):
+	"""Check if the ant has already an order in this turn
+
+	Parameters
+	----------
+	ant : The ant you check (list)
+	orders : the orders of the turn (str)
+
+	return
+	------
+	is_order: True if the ant has already an order (bool)
+
+	Version
+	-------
+	Spécification: Tom Marchal (v.1 29/04/21)
+	Implémentation : Tom Marchal (v.1 29/04/21)
+
+	"""
+	is_order = False
+	#check si orders n'est pas vide
+	if ":" in orders:
+		orders = orders.split()
+	for order in orders:
+		order = order.split(":")
+		if ant[0] in order[0] and ant[1] in order[0]:
+			is_order = True
+
+	return is_order
+
 main_game(cpx_file,1,'human',2, 'human')
