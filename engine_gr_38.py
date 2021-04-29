@@ -1046,11 +1046,11 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 										ant[1] += 1
 									elif ant[1] > clod[1]:
 										ant[1] -= 1
-								if check_if_ant_has_order(ant,orders):
+								if not check_if_ant_has_order(ant,orders):
 									order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
 									break
 							else:
-								if check_if_ant_has_order(ant,orders):
+								if not check_if_ant_has_order(ant,orders):
 									order = "%d-%d:lift"%(ant_x,ant_y)
 									break
 					orders += order + " "
@@ -1060,7 +1060,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 					#check si la fourmi est à coté de la fourmilière
 					if ant_x == anthill[0]+1 or ant_x == anthill[0] or ant_x == anthill[0]-1 and ant_y == anthill[1]+1 or ant_y == anthill[1] or ant_y == anthill[1]-1:
 						if ant_x != anthill[1] or ant_y != anthill[1]:
-							if check_if_ant_has_order(ant,orders):
+							if not check_if_ant_has_order(ant,orders):
 								order = "%d-%d:drop"%(ant_x,ant_y)
 					#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
 					else:
@@ -1072,7 +1072,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 							ant[1] += 1
 						elif ant_y > anthill[1]:
 							ant[1] -= 1
-						if check_if_ant_has_order(ant,orders):
+						if not check_if_ant_has_order(ant,orders):
 							order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
 					orders += order + " "
 
@@ -1095,16 +1095,36 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 			ant[1] += 1
 		else:
 			ant[1] -= 1
-		if check_if_ant_has_order(ant,orders):
+		if not check_if_ant_has_order(ant,orders):
 			order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
 			orders += order + " "
-
 	# Position de force --> Attaquer la fourmi adverse
+
 	# Position de faiblesse --> Rester en retrait et prendre les mottes de terres adverses
 
+	# Ramener les mottes de terres autour de la fourmilière si la fourmi en porte une
+	for ant in ant_dico:
+		if ant['clod']:
+			ant_x = ant[0]
+			ant_y = ant[1]
+			if ant_x == anthill[0]+1 or ant_x == anthill[0] or ant_x == anthill[0]-1 and ant_y == anthill[1]+1 or ant_y == anthill[1] or ant_y == anthill[1]-1:
+				if ant_x != anthill[1] or ant_y != anthill[1]:
+					if not check_if_ant_has_order(ant,orders):
+						order = "%d-%d:drop"%(ant_x,ant_y)
+			else:
+				if ant_x < anthill[0]:
+					ant[0] += 1
+				elif ant_x > anthill[0]:
+					ant[0] -= 1
+				if ant_y < anthill[1]:
+					ant[1] += 1
+				elif ant_y > anthill[1]:
+					ant[1] -= 1
+				if not check_if_ant_has_order(ant,orders):
+					order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+			orders += order + " "
 	# Intercepter des fourmis adverses qui retourne vers leurs fourmilières avec une motte de terre
-
-
+	
 
 	# Défense : Si motte de terre enlevée essayer d'intercepter la fourmi adverse et la tuer
 
