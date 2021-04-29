@@ -1153,10 +1153,10 @@ def check_if_ant_has_order(ant,orders):
 	#check si orders n'est pas vide
 	if ":" in orders:
 		orders = orders.split()
-	for order in orders:
-		order = order.split(":")
-		if ant[0] in order[0] and ant[1] in order[0]:
-			is_order = True
+		for order in orders:
+			order = order.split(":")
+			if ant[0] in order[0] and ant[1] in order[0]:
+				is_order = True
 
 	return is_order
 
