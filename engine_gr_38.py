@@ -970,44 +970,6 @@ def cpx_file():
 		fh.write('%d %d %d \n'%(clod[0],clod[1],clod[2]))
 	fh.close()	
 
-def IA_naive(ant_dico, number_of_the_player):
-	""" The IA will play instead of a human, it will move the ants.
-
-	
-	Spécification
-	-------------
-	ant_dico : The dico of the ants (dict)
-	number_of_the_player: The number of the player (int)
-	return
-	------
-	order : The order of the IA (list)
-
-	Version
-	-------
-	Spécification : Marchal Tom (28/03)
-	Implémentation : MArchal Tom (28/03)
-	"""
-	order = ""
-	ants = []
-	if number_of_the_player == "p1":
-		for ant in ant_dico:
-			if ant_dico[ant]['team'] == 'blue':
-				ants.append(ant)
-	else:
-		for ant in ant_dico:
-			if ant_dico[ant]['team'] == 'red':
-				ants.append(ant)
-	for ant in ants:
-		x = ant[0]
-		y = ant[1]
-		order += "%d-%d:@"%(x,y)
-		move = random.choice(((-1, 0), (1, 0), (0, -1), (0, 1)))
-		if move[0] != 0:
-			x += move[0]
-		if move[1] != 0:
-			y += move[1]
-		order += "%d-%d"%(x,y)
-	return order
 
 def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 	""" Get the orders given by the IA
@@ -1029,61 +991,64 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 	Implémentation : Marchal Tom ()
 	"""
 	orders = ""
-	# Récupère la couleur de l'équipe
-	if team == 1:
-		team = 'blue'
-	else:
-		team = 'red'
+	# Récupère la fourmilière de l'équipe
 	anthill = anthill_dico[team]
+	if team == 'blue':
+		nb_team = 0
+	else:
+		nb_team = 1
 	# Première étape : Récupérer un maximum de mottes de terres pour avoir un avantage sur le niveau des fourmis 
-	for ant in ant_dico:
-		if ant['team'] == team:
-			for clod in clod_dico:
-				#check if the clod is around the anthill
-				is_around = False
-				#check if there is a clod up or under the anthill
-				if clod[0] == anthill[0]:
-					if clod[1] == (anthill[1] + 1) or clod[1] == (anthill[1] - 1):
-						is_around = True
-				#check if there is a clod on the left or the right of the anthill
-				if clod[1] == anthill[1]:
-					if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-						is_around = True
-				#check if there is a clod up-left or up_right the anthill
-				if clod[1] == (anthill[1] + 1):
-					if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-						is_around = True
-				#check if there is a clod down-left or down-right the anthill
-				if clod[1] == (anthill[1] - 1):
-					if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-						is_around = True
+	while Clod_number_around_anthill(clod_dico,anthill_dico)[nb_team] < 3:
+		for ant in ant_dico:
+			if ant['team'] == team:
+				for clod in clod_dico:
+					#check if the clod is around the anthill
+					is_around = False
+					#check if there is a clod up or under the anthill
+					if clod[0] == anthill[0]:
+						if clod[1] == (anthill[1] + 1) or clod[1] == (anthill[1] - 1):
+							is_around = True
+					#check if there is a clod on the left or the right of the anthill
+					if clod[1] == anthill[1]:
+						if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+							is_around = True
+					#check if there is a clod up-left or up_right the anthill
+					if clod[1] == (anthill[1] + 1):
+						if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+							is_around = True
+					#check if there is a clod down-left or down-right the anthill
+					if clod[1] == (anthill[1] - 1):
+						if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+							is_around = True
 
-				#regarde si la motte est la plus proche
-				is_nearest = False
-				dist_x = abs(ant[0] - clod[0])
-				dist_y = abs(ant[1] - clod[1])
-				for clod
-				#dirige la fourmi vers la motte de terre
-				if is_around == False:
-					ant_x = ant[0]
-					ant_y = ant[1]
-					if ant[0] != clod[0]:
-						if ant[0] < clod[0]:
-							ant[0] += 1
+					#regarde si la motte est la plus proche
+					is_nearest = True
+					dist_x = abs(ant[0] - clod[0])
+					dist_y = abs(ant[1] - clod[1])
+					for cld in clod_dico:
+						x = abs(ant[0] - cld[0])
+						y = abs(ant[1] - cld[1])
+						if dist_x > x and dist_y > y:
+							is_nearest = False
+					#dirige la fourmi vers la motte de terre
+					if is_around == False and is_nearest == True:
+						ant_x = ant[0]
+						ant_y = ant[1]
+						if ant[0] != clod[0]:
+							if ant[0] < clod[0]:
+								ant[0] += 1
+							else:
+								ant[0] -= 1
 						else:
-							ant[0] -= 1
-					else:
-						if ant[1] < clod[1]:
-							ant[1] += 1
-						else:
-							ant[1] -= 1
+							if ant[1] < clod[1]:
+								ant[1] += 1
+							else:
+								ant[1] -= 1
 
-					order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1]))
-					break
-			orders += order + " "
-
-	
-
+						order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+						break
+				orders += order + " "
+				
 	# Deuxième étape : Se diriger vers la fourmilière adverse
 
 	# Position de force --> Attaquer la fourmi adverse
