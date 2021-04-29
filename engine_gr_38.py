@@ -1001,53 +1001,79 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 	while Clod_number_around_anthill(clod_dico,anthill_dico)[nb_team] < 3:
 		for ant in ant_dico:
 			if ant['team'] == team:
-				for clod in clod_dico:
-					#check if the clod is around the anthill
-					is_around = False
-					#check if there is a clod up or under the anthill
-					if clod[0] == anthill[0]:
-						if clod[1] == (anthill[1] + 1) or clod[1] == (anthill[1] - 1):
-							is_around = True
-					#check if there is a clod on the left or the right of the anthill
-					if clod[1] == anthill[1]:
-						if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-							is_around = True
-					#check if there is a clod up-left or up_right the anthill
-					if clod[1] == (anthill[1] + 1):
-						if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-							is_around = True
-					#check if there is a clod down-left or down-right the anthill
-					if clod[1] == (anthill[1] - 1):
-						if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-							is_around = True
+				if ant['clod'] == False:
+					for clod in clod_dico:
+						#check if the clod is around the anthill
+						is_around = False
+						#check if there is a clod up or under the anthill
+						if clod[0] == anthill[0]:
+							if clod[1] == (anthill[1] + 1) or clod[1] == (anthill[1] - 1):
+								is_around = True
+						#check if there is a clod on the left or the right of the anthill
+						if clod[1] == anthill[1]:
+							if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+								is_around = True
+						#check if there is a clod up-left or up_right the anthill
+						if clod[1] == (anthill[1] + 1):
+							if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+								is_around = True
+						#check if there is a clod down-left or down-right the anthill
+						if clod[1] == (anthill[1] - 1):
+							if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
+								is_around = True
 
-					#regarde si la motte est la plus proche
-					is_nearest = True
-					dist_x = abs(ant[0] - clod[0])
-					dist_y = abs(ant[1] - clod[1])
-					for cld in clod_dico:
-						x = abs(ant[0] - cld[0])
-						y = abs(ant[1] - cld[1])
-						if dist_x > x and dist_y > y:
-							is_nearest = False
-					#dirige la fourmi vers la motte de terre
-					if is_around == False and is_nearest == True:
-						ant_x = ant[0]
-						ant_y = ant[1]
-						if ant[0] != clod[0]:
-							if ant[0] < clod[0]:
-								ant[0] += 1
-							else:
-								ant[0] -= 1
-						else:
-							if ant[1] < clod[1]:
-								ant[1] += 1
-							else:
-								ant[1] -= 1
+						#regarde si la motte est la plus proche
+						is_nearest = True
+						dist_x = abs(ant[0] - clod[0])
+						dist_y = abs(ant[1] - clod[1])
+						for cld in clod_dico:
+							x = abs(ant[0] - cld[0])
+							y = abs(ant[1] - cld[1])
+							if dist_x > x and dist_y > y:
+								is_nearest = False
 
+						#dirige la fourmi vers la motte de terre
+						if is_around == False and is_nearest == True:
+							if ant[0] != clod[0] and ant[1] != clod[1]:
+								ant_x = ant[0]
+								ant_y = ant[1]
+								if ant[0] != clod[0]:
+									if ant[0] < clod[0]:
+										ant[0] += 1
+									elif ant[0] > clod[0]:
+										ant[0] -= 1
+								else:
+									if ant[1] < clod[1]:
+										ant[1] += 1
+									elif ant[1] > clod[1]:
+										ant[1] -= 1
+
+								order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+								break
+							else:
+								order = "%d-%d:lift"%(ant_x,ant_y)
+								break
+					orders += order + " "
+				else:
+					ant_x = ant[0]
+					ant_y = ant[1]
+					#check si la fourmi est à coté de la fourmilière
+					if ant_x == anthill[0]+1 or ant_x == anthill[0] or ant_x == anthill[0]-1 and ant_y == anthill[1]+1 or ant_y == anthill[1] or ant_y == anthill[1]-1:
+						if ant_x != anthill[1] or ant_y != anthill[1]:
+							order = "%d-%d:drop"%(ant_x,ant_y)
+					#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
+					else:
+						if ant_x < anthill[0]:
+							ant[0] += 1
+						elif ant_x > anthill[0]:
+							ant[0] -= 1
+						if ant_y < anthill[1]:
+							ant[1] += 1
+						elif ant_y > anthill[1]:
+							ant[1] -= 1
 						order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-						break
-				orders += order + " "
+						orders += order + " "
+
 				
 	# Deuxième étape : Se diriger vers la fourmilière adverse
 
