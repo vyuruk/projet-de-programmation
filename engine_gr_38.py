@@ -1161,3 +1161,26 @@ def check_if_ant_has_order(ant,orders):
 	return is_order
 
 main_game(cpx_file,1,'human',2, 'human')
+
+def strong_ant(ant_dico, enemy_ant):
+    	"""when an ant is in strong position.
+		parameters
+		----------
+		ant_dico: dictionary of the ants (dico)
+		enemy_ant: the enemy of the ally ant team(str)
+
+		version
+		-------
+		Spécification : Yuruk Valentin (v.1 30/04/2021)
+		Implémentation : Yuruk Valentin (v.2 30/04/2021)
+		"""
+		# la fourmi attaque une autre si elle a plus de vie et qu'elle est dans un rayon de 4 cases.
+		for ant in ant_dico:
+    			if ant['team'] == team:
+    					for enemy_ant in ant_dico:  	
+							if enemy_ant['teams'] == enemy:
+								dist_x= abs(ant[0]-enemy_ant[0])
+								dist_y= abs(ant[1]-enemy_ant[1])
+								if dist_x<4 and dist_y<4:
+									if ant['life']> enemy_ant['life']:
+    										order = "%d-%d:*%d-%d"%(ant_x,ant_y,ant[0],[ant[1])
