@@ -42,18 +42,17 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	# 	if anthill_dico[anthill] == inp:
 	# 		print('yes')
 
-
+	Is_human = False
 	if type_1 == "human" and type_2 == "human":
 		Is_human = True
 
-	# if type_1 == "IA" and type_2 == "IA":
-	# 	order_player_1 = IA_naive(ant_dico,"p1")
-	# 	order_player_2 = IA_naive(ant_dico,"p2")
-	# 	order = player_order(order_player_1,order_player_2)
+	if type_1 == "IA" and type_2 == "IA":
+		order_player_1 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,1)
+		order_player_2 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,2)
+		orders = player_order(order_player_1,order_player_2)
 	
 	Display_interface(map, ant_dico, clod_dico, anthill_dico, shift)
 	Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
-
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):	
 
 		if Is_human:
@@ -80,7 +79,7 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 				for player_id in (1, 2):
 					# get player sentence
 					if types[player_id] == 'AI':
-						sentences[player_id] = get_AI_sentence()
+						sentences[player_id] = get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id)
 					else:
 						sentences[player_id] = remote_play.get_remote_orders(connection)
 
@@ -120,13 +119,13 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 
 		#Création nouvelle fourmis
 		Is_ant_dead(ant_dico) 
-		#New_ant(turn,ant_dico,anthill_dico,clod_dico,Clod_number_around_anthill)
+		New_ant(turn,ant_dico,anthill_dico,clod_dico,Clod_number_around_anthill,)
 
 		turn += 1
 		time.sleep(1.00)
 
 		Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
-
+		#print(orders)
 	End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn)
 	#disconnect
 	"""remote_play.close_connection(connection)"""
@@ -444,8 +443,10 @@ def Ant_movement(map, orders, ant_dico, clod_dico, anthill_dico, shift, team):
 	"""
 
 	for order in orders:
-		if team == 0 : team = 'blue'
-		else : team = 'red'
+		if team == 0 : 
+			team = 'blue'
+		else : 
+			team = 'red'
 		order = order.split(':@')
 		coordinate = order[0]
 		target = order[1]
@@ -484,7 +485,7 @@ def Ant_movement(map, orders, ant_dico, clod_dico, anthill_dico, shift, team):
 								y = pixel_to_cell_y(print_in_black[1], shift)
 								print(term.move_xy(x, y) + term.on_black + ' ' + term.normal, end='', flush=True)	
 			
-def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill, team):
+def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill):
 	"""the function that will count clods around the anthills.
 	parameters
 	----------
@@ -492,7 +493,6 @@ def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill, 
 	anthill_dico: dictionary of anthill (dict)
     turn: new turn in the game (int)
     Clod_number_around_anthill: number of clods around the anthill(int)
-    team: number of the teams (int)
 
 	return
 	------
@@ -504,50 +504,113 @@ def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill, 
 	Specification : Antoine Boudjenah, Marchal Tom (v.1 22/02/21), Valentin Yuruk (v.2 24/02/21)
 	Implémentation : Marchal Tom (v.1 26/03/21)
 	"""
-	#count the clods for the blue anthill
-	anthill_b_x = anthill_dico['anthill_blue'][0]
-	anthill_b_y = anthill_dico['anthill_blue'][1]
-	nbr_cld_b = 0
-	for clod in clod_dico:
-		#check if there is a clod up or under the anthill
-		if clod[0] == anthill_b_x:
-			if clod[1] == (anthill_b_y + 1) or clod[1] == (anthill_b_y - 1):
-				nbr_cld_b += 1
-		#check if there is a clod on the left or the right of the anthill
-		if clod[1] == anthill_b_y:
-			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
-				nbr_cld_b += 1
-		#check if there is a clod up-left or up_right the anthill
-		if clod[1] == (anthill_b_y + 1):
-			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
-				nbr_cld_b += 1
-		#check if there is a clod down-left or down-right the anthill
-		if clod[1] == (anthill_b_y - 1):
-			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
-				nbr_cld_b += 1
-	
-	#count the clods for the red anthill
-	anthill_r_x = anthill_dico['anthill_red'][0]
-	anthill_r_y = anthill_dico['anthill_red'][1]
-	nbr_cld_r = 0
-	for clod in clod_dico:
-		#check if there is a clod up or under the anthill
-		if clod[0] == anthill_r_x:
-			if clod[1] == (anthill_r_y + 1) or clod[1] == (anthill_r_y - 1):
-				nbr_cld_r += 1
-		#check if there is a clod on the left or the right of the anthill
-		if clod[1] == anthill_r_y:
-			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
-				nbr_cld_r += 1
-		#check if there is a clod up-left or up_right the anthill
-		if clod[1] == (anthill_r_y + 1):
-			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
-				nbr_cld_r += 1
-		#check if there is a clod down-left or down-right the anthill
-		if clod[1] == (anthill_r_y - 1):
-			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
-				nbr_cld_r += 1
-	return nbr_cld_b, nbr_cld_r
+	#collect the number of clods around the anthills
+	clods = Clod_number_around_anthill(clod_dico,anthill_dico)
+	if clods == None:
+		clods = [0,0]
+	clods_blue = clods[0]
+	clods_red = clods[1]
+	if turn % 5 == 0:
+		#create an ant
+		for ant in ant_dico:
+			if ant[0] != anthill_dico['anthill_blue'][0] or ant[1] != anthill_dico['anthill_blue'][1]:
+				if clods_blue <= 2:
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 3
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 1
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
+					break
+				if clods_blue <= 5 and clods_blue > 3:
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 5
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 2
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
+					break
+				if clods_blue <= 8 and clods_blue > 6:
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 7
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 3
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
+					ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
+					break
+		for ant in ant_dico:
+			if ant[0] != anthill_dico['anthill_red'][0] or ant[1] != anthill_dico['anthill_red'][1]:
+				if clods_red <= 2:
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 3
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 1
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
+					break
+				if clods_red <= 5 and clods_red > 3:
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 5
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 2
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
+					break
+				if clods_red <= 8 and clods_red > 6:
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 7
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 3
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
+					ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
+					break
+		for anthill in anthill_dico:
+			if anthill == 'anthill_blue':
+				if (anthill[0],anthill[1]) not in ant_dico:
+					if clods_blue <= 2:
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 3
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 1
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
+					if clods_blue <= 5 and clods_blue > 3:
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 5
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 2
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'		
+					if clods_blue <= 8 and clods_blue > 6:
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])] = {}
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['life'] = 7
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['scope'] = 3
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['strength'] = 3
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['clod'] = False
+						ant_dico[(anthill_dico['anthill_blue'][0],anthill_dico['anthill_blue'][1])]['team'] = 'blue'
+			if anthill == 'anthill_red':
+				if (anthill[0],anthill[1]) not in ant_dico:
+					if clods_red <= 2:
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 3
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 1
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
+					if clods_red <= 5 and clods_red > 3:
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 5
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 2
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
+					if clods_red <= 8 and clods_red > 6:
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])] = {}
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['life'] = 7
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['scope'] = 3
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['strength'] = 3
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['clod'] = False
+						ant_dico[(anthill_dico['anthill_red'][0],anthill_dico['anthill_red'][1])]['team'] = 'red'
 
 def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 	"""display the interface at the start of the game till the end. 
@@ -970,7 +1033,7 @@ def cpx_file():
 		fh.write('%d %d %d \n'%(clod[0],clod[1],clod[2]))
 	fh.close()	
 
-def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
+def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	""" Get the orders given by the IA
 	
 	Parameters
@@ -978,7 +1041,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 	ant_dico : The dico of the ants (dict)
 	anthill_dico : The dico of the anthills (dict)
 	clod_dico : The dico of the clods (dict)
-	team : The number of the IA's team (str)
+	player_id: the number of the player (int)
 	
 	Return
 	------
@@ -991,16 +1054,24 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 	"""
 	orders = ""
 	# Récupère la fourmilière de l'équipe
-	anthill = anthill_dico[team]
-	if team == 'blue':
+	if player_id == 1:
+		team = 'blue'
 		nb_team = 0
+		enemy = 'red'
 	else:
+		team = 'red'
 		nb_team = 1
+		enemy = 'blue'
+	anthill = "anthill_%s"%team
+	enemy_anthill = "anthill_%s"%enemy
+	anthill = anthill_dico[anthill]
+	enemy_anthill = anthill_dico[enemy_anthill]
+
 	# Première étape : Récupérer un maximum de mottes de terres pour avoir un avantage sur le niveau des fourmis 
-	while Clod_number_around_anthill(clod_dico,anthill_dico)[nb_team] < 3:
+	if Clod_number_around_anthill(clod_dico,anthill_dico)[nb_team] < 3:
 		for ant in ant_dico:
-			if ant['team'] == team:
-				if ant['clod'] == False:
+			if ant_dico[ant]['team'] == team:
+				if ant_dico[ant]['clod'] == False:
 					for clod in clod_dico:
 						#check if the clod is around the anthill
 						is_around = False
@@ -1034,6 +1105,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 						#dirige la fourmi vers la motte de terre
 						if is_around == False and is_nearest == True:
 							if ant[0] != clod[0] and ant[1] != clod[1]:
+								ant = list(ant)
 								ant_x = ant[0]
 								ant_y = ant[1]
 								if ant[0] != clod[0]:
@@ -1051,10 +1123,11 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 									break
 							else:
 								if not check_if_ant_has_order(ant,orders):
-									order = "%d-%d:lift"%(ant_x,ant_y)
+									order = "%d-%d:lift"%(ant[0],ant[1])
 									break
 					orders += order + " "
 				else:
+					ant = list(ant)
 					ant_x = ant[0]
 					ant_y = ant[1]
 					#check si la fourmi est à coté de la fourmilière
@@ -1078,56 +1151,124 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,team):
 
 
 	# Deuxième étape : Se diriger vers la fourmilière adverse
-	if team == 'blue':
-		enemy = 'red'
-	else:
-		enemy = 'blue'
-	enemy_anthill = anthill_dico[enemy] 
+
 	for ant in ant_dico:
-		ant_x = ant[0]
-		ant_y = ant[1]
-		if ant[0] < enemy_anthill[0]:
-			ant[0] += 1
-		else:
-			ant[0] -= 1
-
-		if ant[1] < enemy_anthill[1]:
-			ant[1] += 1
-		else:
-			ant[1] -= 1
-		if not check_if_ant_has_order(ant,orders):
-			order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-			orders += order + " "
-	# Position de force --> Attaquer la fourmi adverse
-
-	# Position de faiblesse --> Rester en retrait et prendre les mottes de terres adverses
-
-	# Ramener les mottes de terres autour de la fourmilière si la fourmi en porte une
-	for ant in ant_dico:
-		if ant['clod']:
+		if ant_dico[ant]['team'] == team:
+			ant = list(ant)
 			ant_x = ant[0]
 			ant_y = ant[1]
-			if ant_x == anthill[0]+1 or ant_x == anthill[0] or ant_x == anthill[0]-1 and ant_y == anthill[1]+1 or ant_y == anthill[1] or ant_y == anthill[1]-1:
-				if ant_x != anthill[1] or ant_y != anthill[1]:
-					if not check_if_ant_has_order(ant,orders):
-						order = "%d-%d:drop"%(ant_x,ant_y)
-			else:
-				if ant_x < anthill[0]:
-					ant[0] += 1
-				elif ant_x > anthill[0]:
-					ant[0] -= 1
-				if ant_y < anthill[1]:
-					ant[1] += 1
-				elif ant_y > anthill[1]:
-					ant[1] -= 1
-				if not check_if_ant_has_order(ant,orders):
-					order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-			orders += order + " "
-	# Intercepter des fourmis adverses qui retourne vers leurs fourmilières avec une motte de terre
+			if ant[0] < enemy_anthill[0]:
+				ant[0] += 1
+			elif ant[0] > enemy_anthill[0]:
+				ant[0] -= 1
+
+			if ant[1] < enemy_anthill[1]:
+				ant[1] += 1
+			elif ant[1] > enemy_anthill[1]:
+				ant[1] -= 1
+			if not check_if_ant_has_order(ant,orders):
+				order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+				orders += order + " "
 	
+	# Défense : Attaquer toutes les fourmis proches de la fourmilière
+	for enemy_ant in ant_dico:
+		if anthill[0]-3 <= enemy_ant[0] <= anthill[0]+3 and anthill[1]-3 <= enemy_ant[1] <= anthill[1]+3:
+			for ant in ant_dico:
+				if ant_dico[ant]['team'] == team:
+					if anthill[0]-6 <= ant[0] <= anthill[0]+6 and anthill[1]-6 <= ant[1] <= anthill[1]+6:
+						dist_x = abs(ant[0] - enemy_ant[0])
+						dist_y = abs(ant[1] - enemy_ant[1])
+						if dist_x < 4 and dist_y < 4:
+							if not check_if_ant_has_order(ant,orders):
+									order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+									orders += order + " "
+						else:
+							ant = list(ant)
+							if ant[0] < enemy_ant[0]:
+								ant[0] += 1
+							elif ant[0]> enemy_ant[0]:
+								ant[0] -= 1
+							if ant[1]< enemy_ant[1]:
+								ant[1] += 1
+							elif ant[1] > enemy_ant[1]:
+								ant[1] -= 1
+							if not check_if_ant_has_order(ant,orders):
+								order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+							orders += order + " "
+	# Position de force --> Attaquer la fourmi adverse
+	for ant in ant_dico:
+		if ant_dico[ant]['team'] == team:
+			for enemy_ant in ant_dico:  	
+				if ant_dico[enemy_ant]['team'] == enemy:
+					dist_x= abs(ant[0]-enemy_ant[0])
+					dist_y= abs(ant[1]-enemy_ant[1])
+					if dist_x<4 and dist_y<4:
+						if ant_dico[ant]['life']> ant_dico[enemy_ant]['life']:
+							if not check_if_ant_has_order(ant,orders):
+								order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+								orders += order + " "
 
-	# Défense : Si motte de terre enlevée essayer d'intercepter la fourmi adverse et la tuer
+	# Position de faiblesse --> Rester en retrait et prendre les mottes de terres adverses
+	for ant in ant_dico:
+		if ant_dico[ant]['team'] == team:
+			for enemy_ant in ant_dico:
+				if ant_dico[enemy_ant]['team'] == enemy:
+					dist_x = abs(ant[0] - enemy_ant[0])
+					dist_y = abs(ant[1] - enemy_ant[1])
+					if dist_x < 4 and dist_y < 4:
+						if ant_dico[ant]['life'] < ant_dico[enemy_ant]['life']:
+							ant = list(ant)
+							ant_x = ant[0]
+							ant_y = ant[1]
+							if ant[0] < enemy_ant[0]:
+								ant[0] -= 1
+							elif ant[0] > enemy_ant[0]:
+								ant[0] += 1
 
+							if ant[1] < enemy_ant[1]:
+								ant[1] -= 1
+							elif ant[1] > enemy_ant[1]:
+								ant[1] += 1
+							if not check_if_ant_has_order(ant,orders):
+								order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+								orders += order + " "
+	
+	# Ramener les mottes de terres autour de la fourmilière si la fourmi en porte une
+	for ant in ant_dico:
+		if ant_dico[ant]['team'] == team:
+			if ant_dico[ant]['clod']:
+				ant = list(ant)
+				ant_x = ant[0]
+				ant_y = ant[1]
+				if ant_x == anthill[0]+1 or ant_x == anthill[0] or ant_x == anthill[0]-1 and ant_y == anthill[1]+1 or ant_y == anthill[1] or ant_y == anthill[1]-1:
+					if ant_x != anthill[1] or ant_y != anthill[1]:
+						if not check_if_ant_has_order(ant,orders):
+							order = "%d-%d:drop"%(ant_x,ant_y)
+				else:
+					if ant_x < anthill[0]:
+						ant[0] += 1
+					elif ant_x > anthill[0]:
+						ant[0] -= 1
+					if ant_y < anthill[1]:
+						ant[1] += 1
+					elif ant_y > anthill[1]:
+						ant[1] -= 1
+					if not check_if_ant_has_order(ant,orders):
+						order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+				orders += order + " "
+				
+	# Intercepter des fourmis adverses qui retourne vers leurs fourmilières avec une motte de terre
+	for ant in ant_dico:
+		if ant_dico[ant]['team'] == team:
+			for enemy_ant in ant_dico:
+				if ant_dico[enemy_ant]['team'] == enemy:
+					if ant_dico[enemy_ant]['clod']:
+						dist_x = abs(ant[0] - enemy_ant[0])
+						dist_y = abs(ant[1] - enemy_ant[1])
+						if dist_x < 4 and dist_y < 4:
+							if not check_if_ant_has_order(ant,orders):
+								order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+								orders += order + " "
 
 	return orders
 
@@ -1155,32 +1296,9 @@ def check_if_ant_has_order(ant,orders):
 		orders = orders.split()
 		for order in orders:
 			order = order.split(":")
-			if ant[0] in order[0] and ant[1] in order[0]:
+			if str(ant[0]) in str(order[0]) and str(ant[1]) in str(order[0]):
 				is_order = True
 
 	return is_order
 
 main_game(cpx_file,1,'human',2, 'human')
-
-def strong_ant(ant_dico, enemy_ant):
-    	"""when an ant is in strong position.
-		parameters
-		----------
-		ant_dico: dictionary of the ants (dico)
-		enemy_ant: the enemy of the ally ant team(str)
-
-		version
-		-------
-		Spécification : Yuruk Valentin (v.1 30/04/2021)
-		Implémentation : Yuruk Valentin (v.2 30/04/2021)
-		"""
-		# la fourmi attaque une autre si elle a plus de vie et qu'elle est dans un rayon de 4 cases.
-		for ant in ant_dico:
-    			if ant['team'] == team:
-    					for enemy_ant in ant_dico:  	
-							if enemy_ant['teams'] == enemy:
-								dist_x= abs(ant[0]-enemy_ant[0])
-								dist_y= abs(ant[1]-enemy_ant[1])
-								if dist_x<4 and dist_y<4:
-									if ant['life']> enemy_ant['life']:
-    										order = "%d-%d:*%d-%d"%(ant_x,ant_y,ant[0],[ant[1])
