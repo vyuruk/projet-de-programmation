@@ -30,35 +30,28 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	turn = 1
 	shift = 3
 
-	# for anthill in anthill_dico:
-	# 	print(anthill_dico[anthill])
-
-	# inp = input('Q ? :')
-	# inp = inp.split(" ")
-	# inp = (int(inp[0]), int(inp[1]))
-
-	# print(inp)
-	# for anthill in anthill_dico:
-	# 	if anthill_dico[anthill] == inp:
-	# 		print('yes')
-
 	Is_human = False
 	if type_1 == "human" and type_2 == "human":
 		Is_human = True
 
+	Is_IA = False
 	if type_1 == "IA" and type_2 == "IA":
-		order_player_1 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,1)
-		order_player_2 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,2)
-		orders = player_order(order_player_1,order_player_2)
+		Is_IA = True
 	
 	Display_interface(map, ant_dico, clod_dico, anthill_dico, shift)
 	Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):	
-		print(ant_dico)
-		print(clod_dico)
 		if Is_human:
+			y = int(map[1]) + 1
+			y = pixel_to_cell_y(y,shift)
+			print(term.move_xy(0,y) + term.black + term.on_black + "" + term.normal, end='', flush=True)
 			order_player_1 = input("Indiquer vos ordres (P1)")
 			order_player_2 = input("Indiquer vos ordres (P2)")
+			orders = player_order(order_player_1,order_player_2)
+
+		if Is_IA:
+			order_player_1 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,1)
+			order_player_2 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,2)
 			orders = player_order(order_player_1,order_player_2)
 
 		is_remote = False
@@ -173,8 +166,9 @@ def Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 	Specification : Yuruk Valentin, Antoine Boudjenah ( v.2 15/03/21)
 	Implementation : Yuruk Valentin, Antoine Boudjenah (V.1 16/03/21)
 	"""
-	nbr_cld_b = Clod_number_around_anthill(clod_dico,anthill_dico)[0]
-	nbr_cld_r = Clod_number_around_anthill(clod_dico,anthill_dico)[1]
+	nbr_cld_b = Clod_number_around_anthill(clod_dico,anthill_dico, 'blue')
+	nbr_cld_r = Clod_number_around_anthill(clod_dico,anthill_dico, 'red')
+
 	Is_game_over = False
 	if nbr_cld_r == 8 or nbr_cld_b == 8:
 		Is_game_over = True
@@ -198,8 +192,8 @@ def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 
 	#R if red team win, B if bleu team win, E if there's no winner(bool)
 
-	nbr_cld_b = Clod_number_around_anthill(clod_dico,anthill_dico)[0]
-	nbr_cld_r = Clod_number_around_anthill(clod_dico,anthill_dico)[1]
+	nbr_cld_b = Clod_number_around_anthill(clod_dico,anthill_dico, 'blue')
+	nbr_cld_r = Clod_number_around_anthill(clod_dico,anthill_dico, 'red')
 	if nbr_cld_r == 8: 
 		if nbr_cld_b == 8:
 			#No winner
@@ -507,12 +501,10 @@ def New_ant(turn, ant_dico, anthill_dico, clod_dico,Clod_number_around_anthill):
 	Specification : Antoine Boudjenah, Marchal Tom (v.1 22/02/21), Valentin Yuruk (v.2 24/02/21)
 	Implémentation : Marchal Tom (v.1 26/03/21)
 	"""
-	#collect the number of clods around the anthills
-	clods = Clod_number_around_anthill(clod_dico,anthill_dico)
-	if clods == None:
-		clods = [0,0]
-	clods_blue = clods[0]
-	clods_red = clods[1]
+	clods_blue = Clod_number_around_anthill(clod_dico, anthill_dico, 'blue')
+	clods_red = Clod_number_around_anthill(clod_dico, anthill_dico, 'red')
+
+
 	if turn % 5 == 0:
 		#create an ant
 		for ant in ant_dico:
@@ -730,38 +722,6 @@ def Display_interface(map, ant_dico, clod_dico, anthill_dico, shift):
 					print(term.move_xy(col, row) + term.red + term.on_black + '┻' + term.normal, end='', flush=True)
 					line = 0
 
-
-	#print the anthills
-	for anthill in anthill_dico:
-		x = pixel_to_cell_x(anthill_dico[anthill][0],shift)
-		y = pixel_to_cell_y(anthill_dico[anthill][1],shift)
-		if anthill == 'anthill_blue':
-			print(term.move_xy(x,y) + term.blue + term.on_black + u"\u25A0" + term.normal, end='', flush=True)
-		else:
-			print(term.move_xy(x,y) + term.red + term.on_black + u"\u25A0" + term.normal, end='', flush=True)
-
-	for ant in ant_dico:
-		x = pixel_to_cell_x(ant[0],shift)
-		y = pixel_to_cell_y(ant[1],shift)
-		if ant_dico[ant]['team'] == 'blue':
-			if ant_dico[ant]['clod']:
-				print(term.move_xy(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
-			else:
-				print(term.move_xy(x,y) + term.brown + term.on_blue + "." + term.normal, end='', flush=True)
-		else:
-			if ant_dico[ant]['clod']:
-				print(term.move_xy(x,y) + term.brown + term.on_red + ":" + term.normal, end='', flush=True)
-			else:
-				print(term.move_xy(x,y) + term.brown + term.on_red + "." + term.normal, end='', flush=True)
-
-	#print the clods
-	for clod in clod_dico:
-		x = pixel_to_cell_x(clod[0],shift)
-		y = pixel_to_cell_y(clod[1],shift)
-		print(term.move_xy(x,y) + term.brown + term.on_black + "●" + term.normal, end='', flush=True)
-
-	#print(term.move_xy(2, rows + shift + 2), "ant_dico = ", ant_dico)
-
 def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
 	"""display the interface at the start of the game till the end. 
 	
@@ -775,14 +735,16 @@ def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
 	Version
 	------- 
 	Specification : Antoine Boudjenah (v.1 6/04/21), Valentin Yuruk (v.2 23/04/21)
-	Implémentation : Antoine Boudjenah (v.1 6/04/21)
+	Implémentation : Antoine Boudjenah (v.2 2/05/21)
 	"""
 
 	#print the ants
 	for ant in ant_dico:
 		x = pixel_to_cell_x(ant[0],shift)
 		y = pixel_to_cell_y(ant[1],shift)
+
 		if ant_dico[ant]['team'] == 'blue':
+			#Si la fourmi porte une motte de terre
 			if ant_dico[ant]['clod']:
 				print(term.move_xy(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
 			else:
@@ -804,20 +766,22 @@ def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the clods
 	for clod in clod_dico:
-		x = clod[0]
-		y = clod[1]
-		coordinate = [x,y]
-		if Check_something(ant_dico,coordinate,'clod', False):
-			for ant in ant_dico:
-				if ant[0] == x and ant[1] == y:
-					team = ant_dico[ant]['team']
-					x = pixel_to_cell_x(clod[0],shift)
-					y = pixel_to_cell_y(clod[1],shift)
-					if team == 'blue':
-						print(term.move_xy(x,y) + term.brown + term.on_blue + "●" + term.normal, end='', flush=True)
-					else:
-						print(term.move_xy(x,y) + term.brown + term.on_red + "●" + term.normal, end='', flush=True)
-		
+		coordinate = [clod[0], clod[1]]
+		x = pixel_to_cell_x(clod[0],shift)
+		y = pixel_to_cell_y(clod[1],shift)
+		if Check_something(ant_dico,coordinate):
+			#Si fourmi aux coordonnées qui ne porte pas de motte de terre
+			if Check_something(ant_dico, coordinate, 'clod', False):
+				#Si team bleue
+				if Check_something(ant_dico, coordinate, 'team', 'blue'):
+					print(term.move_xy(x,y) + term.white + term.on_blue + "●" + term.normal, end='', flush=True)
+				#Si team rouge
+				else:
+					print(term.move_xy(x,y) + term.white + term.on_red + "●" + term.normal, end='', flush=True)
+		#Si pas de fourmis aux coordonnées
+		else:
+			print(term.move_xy(x,y) + term.white + term.on_black + "●" + term.normal, end='', flush=True)
+			
 def pixel_to_cell_x(x,shift):
 	""" Convert the pixel coordinate into cell coordinate.
 	Parameters
@@ -877,7 +841,7 @@ def Is_ant_dead(ant_dico):
 		if life == 0:
 			ant_dico.pop[cle]
 
-def Clod_number_around_anthill(clod_dico, anthill_dico):
+def Clod_number_around_anthill(clod_dico, anthill_dico, team):
 	"""the function that will count clods around the anthills.
 	parameters
 	----------
@@ -892,52 +856,20 @@ def Clod_number_around_anthill(clod_dico, anthill_dico):
 	Version
 	------- 
 	Specification : Antoine Boudjenah, Marchal Tom (v.1 22/02/21)
-	Implémentation : Marchal Tom (v.1 26/03/21)
+	Implémentation : Marchal Tom (v.1 26/03/21), Antoine Boudjenah(V.2 02/05/21)
 	"""
-	#count the clods for the blue anthill
-	anthill_b_x = anthill_dico['anthill_blue'][0]
-	anthill_b_y = anthill_dico['anthill_blue'][1]
-	nbr_cld_b = 0
-	for clod in clod_dico:
-		#check if there is a clod up or under the anthill
-		if clod[0] == anthill_b_x:
-			if clod[1] == (anthill_b_y + 1) or clod[1] == (anthill_b_y - 1):
-				nbr_cld_b += 1
-		#check if there is a clod on the left or the right of the anthill
-		if clod[1] == anthill_b_y:
-			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
-				nbr_cld_b += 1
-		#check if there is a clod up-left or up_right the anthill
-		if clod[1] == (anthill_b_y + 1):
-			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
-				nbr_cld_b += 1
-		#check if there is a clod down-left or down-right the anthill
-		if clod[1] == (anthill_b_y - 1):
-			if clod[0] == (anthill_b_x + 1) or clod[0] == (anthill_b_x - 1):
-				nbr_cld_b += 1
+	team = 'anthill_%s'%team
+	coordinate = [anthill_dico[team][0], anthill_dico[team][1]]
+	nbr_cld = 0
 	
-	#count the clods for the red anthill
-	anthill_r_x = anthill_dico['anthill_red'][0]
-	anthill_r_y = anthill_dico['anthill_red'][1]
-	nbr_cld_r = 0
 	for clod in clod_dico:
-		#check if there is a clod up or under the anthill
-		if clod[0] == anthill_r_x:
-			if clod[1] == (anthill_r_y + 1) or clod[1] == (anthill_r_y - 1):
-				nbr_cld_r += 1
-		#check if there is a clod on the left or the right of the anthill
-		if clod[1] == anthill_r_y:
-			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
-				nbr_cld_r += 1
-		#check if there is a clod up-left or up_right the anthill
-		if clod[1] == (anthill_r_y + 1):
-			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
-				nbr_cld_r += 1
-		#check if there is a clod down-left or down-right the anthill
-		if clod[1] == (anthill_r_y - 1):
-			if clod[0] == (anthill_r_x + 1) or clod[0] == (anthill_r_x - 1):
-				nbr_cld_r += 1
-	return nbr_cld_b, nbr_cld_r
+		for x in range(0,3):
+			for y in range(0,3):
+				coordinate = [x-1,y-1]
+				if Check_something(clod_dico, coordinate):
+					nbr_cld += 1
+
+	return nbr_cld
 	
 def data(cpx_file):
 	""" Create all the dictionnaries for the data structure.
@@ -1020,10 +952,10 @@ def cpx_file():
 	map_x = random.randint(10,20)
 	map_y = random.randint(10,20)
 	#create the coordinate of the anthills
-	anthill_blue= [random.randint(1,map_x),  random.randint(1,int(map_y/3))]
-	anthill_red= [random.randint(1,map_x),  random.randint(int(map_y/3*2),int(map_y))]
+	anthill_blue= [random.randint(2,map_x),  random.randint(2,int(map_y/3))]
+	anthill_red= [random.randint(2,map_x),  random.randint(int(map_y/3*2),int(map_y)-1)]
 	#create the number of clods
-	clods_number = random.randint(15,int(((map_x+map_y)/2)))
+	clods_number = random.randint(5,int(((map_x+map_y)/2)))
 	#create the coordinate of the clods
 	clods = []
 	for clod in range (0,clods_number+1):
@@ -1067,11 +999,9 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	# Récupère la fourmilière de l'équipe
 	if player_id == 1:
 		team = 'blue'
-		nb_team = 0
 		enemy = 'red'
 	else:
 		team = 'red'
-		nb_team = 1
 		enemy = 'blue'
 	anthill = "anthill_%s"%team
 	enemy_anthill = "anthill_%s"%enemy
@@ -1079,29 +1009,25 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	enemy_anthill = anthill_dico[enemy_anthill]
 
 	# Première étape : Récupérer un maximum de mottes de terres pour avoir un avantage sur le niveau des fourmis 
-	if Clod_number_around_anthill(clod_dico,anthill_dico)[nb_team] < 3:
+	#Si moins de 3 mottes de terres
+	if Clod_number_around_anthill(clod_dico,anthill_dico, team) < 3:
+		#Pour chaque fourmis
 		for ant in ant_dico:
+			#Pour les fourmis de l'équipe
 			if ant_dico[ant]['team'] == team:
+				#Pour les fourmis de l'équipe qui ne portent pas de motte de terres
 				if ant_dico[ant]['clod'] == False:
+					#On va chercher pour chaque fourmis la motte de terre la plus proche
 					for clod in clod_dico:
-						#check if the clod is around the anthill
+
 						is_around = False
-						#check if there is a clod up or under the anthill
-						if clod[0] == anthill[0]:
-							if clod[1] == (anthill[1] + 1) or clod[1] == (anthill[1] - 1):
-								is_around = True
-						#check if there is a clod on the left or the right of the anthill
-						if clod[1] == anthill[1]:
-							if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-								is_around = True
-						#check if there is a clod up-left or up_right the anthill
-						if clod[1] == (anthill[1] + 1):
-							if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-								is_around = True
-						#check if there is a clod down-left or down-right the anthill
-						if clod[1] == (anthill[1] - 1):
-							if clod[0] == (anthill[0] + 1) or clod[0] == (anthill[0] - 1):
-								is_around = True
+
+						#Vérifier si la motte de terre est autour de la fourmilière
+						for x in range(0,3):
+							for y in range(0,3):
+								coordinate = [anthill_dico[team][0]-1 ,anthill_dico[team][1]-1]
+								if clod[0] == coordinate[0] and clod[1] == coordinate[1]:
+									is_around = True	
 
 						#regarde si la motte est la plus proche
 						is_nearest = True
@@ -1146,6 +1072,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 						if ant_x != anthill[1] or ant_y != anthill[1]:
 							if not check_if_ant_has_order(ant,orders):
 								order = "%d-%d:drop"%(ant_x,ant_y)
+								
 					#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
 					else:
 						if ant_x < anthill[0]:
@@ -1160,9 +1087,8 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 							order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
 					orders += order + " "
 
-
 	# Deuxième étape : Se diriger vers la fourmilière adverse
-
+	#Si 3 mottes de terres ou plus
 	for ant in ant_dico:
 		if ant_dico[ant]['team'] == team:
 			ant = list(ant)
@@ -1206,6 +1132,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 							if not check_if_ant_has_order(ant,orders):
 								order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
 							orders += order + " "
+							
 	# Position de force --> Attaquer la fourmi adverse
 	for ant in ant_dico:
 		if ant_dico[ant]['team'] == team:
