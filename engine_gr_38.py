@@ -31,7 +31,7 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	shift = 3
 
 	Is_human = False
-	if type_1 == "human" and type_2 == "human":
+	if type_1 == "human" and type_2 == "IA":
 		Is_human = True
 
 	Is_IA = False
@@ -41,12 +41,14 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	Display_interface(map, ant_dico, clod_dico, anthill_dico, shift)
 	Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):	
+		
 		if Is_human:
 			y = int(map[1]) + 1
 			y = pixel_to_cell_y(y,shift)
 			print(term.move_xy(0,y) + term.black + term.on_black + "" + term.normal, end='', flush=True)
 			order_player_1 = input("Indiquer vos ordres (P1)")
-			order_player_2 = input("Indiquer vos ordres (P2)")
+			order_player_2 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,2)
+			#order_player_2 = input("Indiquer vos ordres (P2)")
 			orders = player_order(order_player_1,order_player_2)
 
 		if Is_IA:
@@ -388,6 +390,7 @@ def Is_target_valid(coordinate, target):
 			Is_target_valid = True
 			
 	return Is_target_valid
+
 def Is_anthill(anthill_dico, coordinate, team):
 	"""
 	Check if an enemy anthill is on coordinates
@@ -976,6 +979,22 @@ def cpx_file():
 		fh.write('%d %d %d \n'%(clod[0],clod[1],clod[2]))
 	fh.close()	
 
+def get_coordinate(coordinate, target):
+	"""
+	"""
+	new_position = coordinate
+	distance = (target[0]-coordinate[0], target[1]-coordinate[1])
+
+	if distance[0] > 0: 
+		new_position[0] = coordinate[0] + 1
+	elif distance[0] < 0 : 
+		new_position[0] = coordinate[0] - 1
+	if distance[1] > 0 : 
+		new_position[1] = coordinate[1] + 1
+	elif distance[1] < 0 : 
+		new_position[1] = coordinate[1] - 1
+	return new_position
+
 def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	""" Get the orders given by the IA
 	
@@ -1003,13 +1022,27 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	else:
 		team = 'red'
 		enemy = 'blue'
-	anthill = "anthill_%s"%team
+	anthill_color = "anthill_%s"%team
 	enemy_anthill = "anthill_%s"%enemy
-	anthill = anthill_dico[anthill]
+	anthill = anthill_dico[anthill_color]
 	enemy_anthill = anthill_dico[enemy_anthill]
+
+	# ETAPE 1
+	# ----------
+	# Si motte < 3:      -> NIVEAU 1
+    # Ramasser des mottes
+
+    # Si Fourmis ennemies s'approchent de la fourmilière (moins de 4 cases)
+    #     Si position de force   
+    #         Dirige vers la fourmi adverse
+    #     Sinon
+    #         Les fourmis les plus proches se dirigent vers la fourmilière (défense)
+
 
 	# Première étape : Récupérer un maximum de mottes de terres pour avoir un avantage sur le niveau des fourmis 
 	#Si moins de 3 mottes de terres
+
+
 	if Clod_number_around_anthill(clod_dico,anthill_dico, team) < 3:
 		#Pour chaque fourmis
 		for ant in ant_dico:
@@ -1019,13 +1052,11 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 				if ant_dico[ant]['clod'] == False:
 					#On va chercher pour chaque fourmis la motte de terre la plus proche
 					for clod in clod_dico:
-
 						is_around = False
-
-						#Vérifier si la motte de terre est autour de la fourmilière
+						#Vérifier si la motte de terre n'est pas autour de la fourmilière
 						for x in range(0,3):
 							for y in range(0,3):
-								coordinate = [anthill_dico[team][0]-1 ,anthill_dico[team][1]-1]
+								coordinate = [anthill_dico[anthill_color][0] + x - 1 ,anthill_dico[anthill_color][1] + y - 1]
 								if clod[0] == coordinate[0] and clod[1] == coordinate[1]:
 									is_around = True	
 
@@ -1033,6 +1064,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 						is_nearest = True
 						dist_x = abs(ant[0] - clod[0])
 						dist_y = abs(ant[1] - clod[1])
+
 						for cld in clod_dico:
 							x = abs(ant[0] - cld[0])
 							y = abs(ant[1] - cld[1])
@@ -1042,135 +1074,131 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 						#dirige la fourmi vers la motte de terre
 						if is_around == False and is_nearest == True:
 							if ant[0] != clod[0] and ant[1] != clod[1]:
-								ant = list(ant)
-								ant_x = ant[0]
-								ant_y = ant[1]
-								if ant[0] != clod[0]:
-									if ant[0] < clod[0]:
-										ant[0] += 1
-									elif ant[0] > clod[0]:
-										ant[0] -= 1
-								else:
-									if ant[1] < clod[1]:
-										ant[1] += 1
-									elif ant[1] > clod[1]:
-										ant[1] -= 1
+								coordinate = [ant[0], ant[1]]
+								new_position = get_coordinate(coordinate, clod)
+
+
+
 								if not check_if_ant_has_order(ant,orders):
-									order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+									order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
 									break
 							else:
 								if not check_if_ant_has_order(ant,orders):
 									order = "%d-%d:lift"%(ant[0],ant[1])
 									break
 					orders += order + " "
+
+
+				#Si elle porte une motte de terre
 				else:
-					ant = list(ant)
-					ant_x = ant[0]
-					ant_y = ant[1]
+					target = [anthill_dico[anthill_color][0], anthill_dico[anthill_color][1]]
 					#check si la fourmi est à coté de la fourmilière
-					if ant_x == anthill[0]+1 or ant_x == anthill[0] or ant_x == anthill[0]-1 and ant_y == anthill[1]+1 or ant_y == anthill[1] or ant_y == anthill[1]-1:
-						if ant_x != anthill[1] or ant_y != anthill[1]:
-							if not check_if_ant_has_order(ant,orders):
-								order = "%d-%d:drop"%(ant_x,ant_y)
+					distance = [abs(target[0] - ant[0]), abs(target[1] - ant[1])]
+					if distance[0] < 2 and distance[1] < 2:
+						if not Is_anthill(anthill_dico, anthill_dico[anthill_color], team):
+							if Check_something(clod_dico, target):
+								
+
+
+
+
+								if not check_if_ant_has_order(ant,orders):
+									order = "%d-%d:drop"%(ant[0],ant[1])
 								
 					#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
 					else:
-						if ant_x < anthill[0]:
-							ant[0] += 1
-						elif ant_x > anthill[0]:
-							ant[0] -= 1
-						if ant_y < anthill[1]:
-							ant[1] += 1
-						elif ant_y > anthill[1]:
-							ant[1] -= 1
+						new_position = get_coordinate(coordinate, anthill_dico[anthill_color])
 						if not check_if_ant_has_order(ant,orders):
-							order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+							order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
 					orders += order + " "
 
-	# Deuxième étape : Se diriger vers la fourmilière adverse
-	#Si 3 mottes de terres ou plus
-	for ant in ant_dico:
-		if ant_dico[ant]['team'] == team:
-			ant = list(ant)
-			ant_x = ant[0]
-			ant_y = ant[1]
-			if ant[0] < enemy_anthill[0]:
-				ant[0] += 1
-			elif ant[0] > enemy_anthill[0]:
-				ant[0] -= 1
+	if Clod_number_around_anthill(clod_dico, anthill_dico, team) >= 3:
+		# Deuxième étape : Se diriger vers la fourmilière adverse
+		# Si 3 mottes de terres ou plus
+		for ant in ant_dico:
+			if ant_dico[ant]['team'] == team:
+				ant = list(ant)
+				ant_x = ant[0]
+				ant_y = ant[1]
+				if ant[0] < enemy_anthill[0]:
+					ant[0] += 1
+				elif ant[0] > enemy_anthill[0]:
+					ant[0] -= 1
 
-			if ant[1] < enemy_anthill[1]:
-				ant[1] += 1
-			elif ant[1] > enemy_anthill[1]:
-				ant[1] -= 1
-			if not check_if_ant_has_order(ant,orders):
-				order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-				orders += order + " "
-	
-	# Défense : Attaquer toutes les fourmis proches de la fourmilière
-	for enemy_ant in ant_dico:
-		if anthill[0]-3 <= enemy_ant[0] <= anthill[0]+3 and anthill[1]-3 <= enemy_ant[1] <= anthill[1]+3:
-			for ant in ant_dico:
-				if ant_dico[ant]['team'] == team:
-					if anthill[0]-6 <= ant[0] <= anthill[0]+6 and anthill[1]-6 <= ant[1] <= anthill[1]+6:
+				if ant[1] < enemy_anthill[1]:
+					ant[1] += 1
+				elif ant[1] > enemy_anthill[1]:
+					ant[1] -= 1
+				if not check_if_ant_has_order(ant,orders):
+					order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+					orders += order + " "
+		
+
+
+		# Défense : Attaquer toutes les fourmis proches de la fourmilière
+		for enemy_ant in ant_dico:
+			if anthill[0]-3 <= enemy_ant[0] <= anthill[0]+3 and anthill[1]-3 <= enemy_ant[1] <= anthill[1]+3:
+				for ant in ant_dico:
+					if ant_dico[ant]['team'] == team:
+						if anthill[0]-6 <= ant[0] <= anthill[0]+6 and anthill[1]-6 <= ant[1] <= anthill[1]+6:
+							dist_x = abs(ant[0] - enemy_ant[0])
+							dist_y = abs(ant[1] - enemy_ant[1])
+							if dist_x < 4 and dist_y < 4:
+								if not check_if_ant_has_order(ant,orders):
+										order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+										orders += order + " "
+							else:
+								ant = list(ant)
+								if ant[0] < enemy_ant[0]:
+									ant[0] += 1
+								elif ant[0]> enemy_ant[0]:
+									ant[0] -= 1
+								if ant[1]< enemy_ant[1]:
+									ant[1] += 1
+								elif ant[1] > enemy_ant[1]:
+									ant[1] -= 1
+								if not check_if_ant_has_order(ant,orders):
+									order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
+								orders += order + " "
+
+		# Position de force --> Attaquer la fourmi adverse
+		for ant in ant_dico:
+			if ant_dico[ant]['team'] == team:
+				for enemy_ant in ant_dico:  	
+					if ant_dico[enemy_ant]['team'] == enemy:
+						dist_x= abs(ant[0]-enemy_ant[0])
+						dist_y= abs(ant[1]-enemy_ant[1])
+						if dist_x<4 and dist_y<4:
+							if ant_dico[ant]['life']> ant_dico[enemy_ant]['life']:
+								if not check_if_ant_has_order(ant,orders):
+									order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+									orders += order + " "
+
+		# Position de faiblesse --> Rester en retrait et prendre les mottes de terres adverses
+		for ant in ant_dico:
+			if ant_dico[ant]['team'] == team:
+				for enemy_ant in ant_dico:
+					if ant_dico[enemy_ant]['team'] == enemy:
 						dist_x = abs(ant[0] - enemy_ant[0])
 						dist_y = abs(ant[1] - enemy_ant[1])
 						if dist_x < 4 and dist_y < 4:
-							if not check_if_ant_has_order(ant,orders):
-									order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+							if ant_dico[ant]['life'] < ant_dico[enemy_ant]['life']:
+								ant = list(ant)
+								ant_x = ant[0]
+								ant_y = ant[1]
+								if ant[0] < enemy_ant[0]:
+									ant[0] -= 1
+								elif ant[0] > enemy_ant[0]:
+									ant[0] += 1
+
+								if ant[1] < enemy_ant[1]:
+									ant[1] -= 1
+								elif ant[1] > enemy_ant[1]:
+									ant[1] += 1
+								if not check_if_ant_has_order(ant,orders):
+									order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
 									orders += order + " "
-						else:
-							ant = list(ant)
-							if ant[0] < enemy_ant[0]:
-								ant[0] += 1
-							elif ant[0]> enemy_ant[0]:
-								ant[0] -= 1
-							if ant[1]< enemy_ant[1]:
-								ant[1] += 1
-							elif ant[1] > enemy_ant[1]:
-								ant[1] -= 1
-							if not check_if_ant_has_order(ant,orders):
-								order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-							orders += order + " "
-							
-	# Position de force --> Attaquer la fourmi adverse
-	for ant in ant_dico:
-		if ant_dico[ant]['team'] == team:
-			for enemy_ant in ant_dico:  	
-				if ant_dico[enemy_ant]['team'] == enemy:
-					dist_x= abs(ant[0]-enemy_ant[0])
-					dist_y= abs(ant[1]-enemy_ant[1])
-					if dist_x<4 and dist_y<4:
-						if ant_dico[ant]['life']> ant_dico[enemy_ant]['life']:
-							if not check_if_ant_has_order(ant,orders):
-								order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
-								orders += order + " "
-
-	# Position de faiblesse --> Rester en retrait et prendre les mottes de terres adverses
-	for ant in ant_dico:
-		if ant_dico[ant]['team'] == team:
-			for enemy_ant in ant_dico:
-				if ant_dico[enemy_ant]['team'] == enemy:
-					dist_x = abs(ant[0] - enemy_ant[0])
-					dist_y = abs(ant[1] - enemy_ant[1])
-					if dist_x < 4 and dist_y < 4:
-						if ant_dico[ant]['life'] < ant_dico[enemy_ant]['life']:
-							ant = list(ant)
-							ant_x = ant[0]
-							ant_y = ant[1]
-							if ant[0] < enemy_ant[0]:
-								ant[0] -= 1
-							elif ant[0] > enemy_ant[0]:
-								ant[0] += 1
-
-							if ant[1] < enemy_ant[1]:
-								ant[1] -= 1
-							elif ant[1] > enemy_ant[1]:
-								ant[1] += 1
-							if not check_if_ant_has_order(ant,orders):
-								order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-								orders += order + " "
-	
+		
 	# Ramener les mottes de terres autour de la fourmilière si la fourmi en porte une
 	for ant in ant_dico:
 		if ant_dico[ant]['team'] == team:
@@ -1194,21 +1222,21 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 					if not check_if_ant_has_order(ant,orders):
 						order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
 				orders += order + " "
-				
-	# Intercepter des fourmis adverses qui retourne vers leurs fourmilières avec une motte de terre
-	for ant in ant_dico:
-		if ant_dico[ant]['team'] == team:
-			for enemy_ant in ant_dico:
-				if ant_dico[enemy_ant]['team'] == enemy:
-					if ant_dico[enemy_ant]['clod']:
-						dist_x = abs(ant[0] - enemy_ant[0])
-						dist_y = abs(ant[1] - enemy_ant[1])
-						if dist_x < 4 and dist_y < 4:
-							if not check_if_ant_has_order(ant,orders):
-								order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
-								orders += order + " "
+					
+		# Intercepter des fourmis adverses qui retourne vers leurs fourmilières avec une motte de terre
+		for ant in ant_dico:
+			if ant_dico[ant]['team'] == team:
+				for enemy_ant in ant_dico:
+					if ant_dico[enemy_ant]['team'] == enemy:
+						if ant_dico[enemy_ant]['clod']:
+							dist_x = abs(ant[0] - enemy_ant[0])
+							dist_y = abs(ant[1] - enemy_ant[1])
+							if dist_x < 4 and dist_y < 4:
+								if not check_if_ant_has_order(ant,orders):
+									order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+									orders += order + " "
 
-	return orders
+		return orders
 
 def check_if_ant_has_order(ant,orders):
 	"""Check if the ant has already an order in this turn
@@ -1239,4 +1267,4 @@ def check_if_ant_has_order(ant,orders):
 
 	return is_order
 
-main_game(cpx_file,1,'human',2, 'human')
+main_game(cpx_file,1,'human',2, 'IA')
