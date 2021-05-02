@@ -54,7 +54,8 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	Display_interface(map, ant_dico, clod_dico, anthill_dico, shift)
 	Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
 	while not Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):	
-
+		print(ant_dico)
+		print(clod_dico)
 		if Is_human:
 			order_player_1 = input("Indiquer vos ordres (P1)")
 			order_player_2 = input("Indiquer vos ordres (P2)")
@@ -470,11 +471,13 @@ def Ant_movement(map, orders, ant_dico, clod_dico, anthill_dico, shift, team):
 							if Check_something(clod_dico, coordinate):
 								#Si la fourmi porte la motte de terre
 								if Check_something(ant_dico, coordinate, 'clod', True):
-									#On déplace la motte de terre avec la fourmi
-									new_position = [target[0],target[1]]
-									new_position = tuple(new_position)
-									clod_dico[new_position] = clod_dico[coordinate]
-									clod_dico.pop(coordinate)
+									#si il n'y a pas de motte de terre à la destination
+									if not Check_something(clod_dico, target):
+										#On déplace la motte de terre avec la fourmi
+										new_position = [target[0],target[1]]
+										new_position = tuple(new_position)
+										clod_dico[new_position] = clod_dico[coordinate]
+										clod_dico.pop(coordinate)
 							new_position = [target[0],target[1]]
 							new_position = tuple(new_position)
 							ant_dico[new_position] = ant_dico[coordinate]
@@ -801,11 +804,19 @@ def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
 
 	#print the clods
 	for clod in clod_dico:
-		x = pixel_to_cell_x(clod[0],shift)
-		y = pixel_to_cell_y(clod[1],shift)
+		x = clod[0]
+		y = clod[1]
 		coordinate = [x,y]
 		if Check_something(ant_dico,coordinate,'clod', False):
-			print(term.move_xy(x,y) + term.brown + term.on_black + "●" + term.normal, end='', flush=True)
+			for ant in ant_dico:
+				if ant[0] == x and ant[1] == y:
+					team = ant_dico[ant]['team']
+					x = pixel_to_cell_x(clod[0],shift)
+					y = pixel_to_cell_y(clod[1],shift)
+					if team == 'blue':
+						print(term.move_xy(x,y) + term.brown + term.on_blue + "●" + term.normal, end='', flush=True)
+					else:
+						print(term.move_xy(x,y) + term.brown + term.on_red + "●" + term.normal, end='', flush=True)
 		
 def pixel_to_cell_x(x,shift):
 	""" Convert the pixel coordinate into cell coordinate.
