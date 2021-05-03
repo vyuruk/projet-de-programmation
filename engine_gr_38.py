@@ -986,7 +986,7 @@ def cpx_file():
 def get_coordinate(coordinate, target):
 	"""
 	"""
-	new_position = coordinate
+	new_position = [0,0]
 	distance = (target[0]-coordinate[0], target[1]-coordinate[1])
 
 	if distance[0] > 0: 
@@ -1139,21 +1139,10 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 		# Si 3 mottes de terres ou plus
 		for ant in ant_dico:
 			if ant_dico[ant]['team'] == team:
-				ant = list(ant)
-				ant_x = ant[0]
-				ant_y = ant[1]
-				if ant[0] < enemy_anthill[0]:
-					ant[0] += 1
-				elif ant[0] > enemy_anthill[0]:
-					ant[0] -= 1
-
-				if ant[1] < enemy_anthill[1]:
-					ant[1] += 1
-				elif ant[1] > enemy_anthill[1]:
-					ant[1] -= 1
 				if not check_if_ant_has_order(ant,orders):
-					order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-					orders += order + " "
+					new_position = get_coordinate(ant, enemy_anthill)				
+					order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
+		orders += order + " "
 		
 
 
@@ -1162,26 +1151,16 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 			if anthill[0]-3 <= enemy_ant[0] <= anthill[0]+3 and anthill[1]-3 <= enemy_ant[1] <= anthill[1]+3:
 				for ant in ant_dico:
 					if ant_dico[ant]['team'] == team:
-						if anthill[0]-6 <= ant[0] <= anthill[0]+6 and anthill[1]-6 <= ant[1] <= anthill[1]+6:
-							dist_x = abs(ant[0] - enemy_ant[0])
-							dist_y = abs(ant[1] - enemy_ant[1])
-							if dist_x < 4 and dist_y < 4:
-								if not check_if_ant_has_order(ant,orders):
-										order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
-										orders += order + " "
-							else:
-								ant = list(ant)
-								if ant[0] < enemy_ant[0]:
-									ant[0] += 1
-								elif ant[0]> enemy_ant[0]:
-									ant[0] -= 1
-								if ant[1]< enemy_ant[1]:
-									ant[1] += 1
-								elif ant[1] > enemy_ant[1]:
-									ant[1] -= 1
-								if not check_if_ant_has_order(ant,orders):
-									order = "%d-%d:@%d-%d"%(ant_x,ant_y,ant[0],ant[1])
-								orders += order + " "
+						if not check_if_ant_has_order(ant,orders):
+							if anthill[0]-6 <= ant[0] <= anthill[0]+6 and anthill[1]-6 <= ant[1] <= anthill[1]+6:
+								dist_x = abs(ant[0] - enemy_ant[0])
+								dist_y = abs(ant[1] - enemy_ant[1])
+								if dist_x < 4 and dist_y < 4:
+									order = "%d-%d:*%d-%d"%(ant[0],ant[1],enemy_ant[0],enemy_ant[1])
+								else:
+									new_position = get_coordinate(coordinate, enemy_anthill)
+									order = "%d-%d:@%d-%d"%(ant[0],ant[1], new_position[0], new_position[1])
+					orders += order + " "
 
 		# Position de force --> Attaquer la fourmi adverse
 		for ant in ant_dico:
