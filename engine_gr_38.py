@@ -1086,9 +1086,10 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 									order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
 									break
 							else:
-								if not check_if_ant_has_order(ant,orders):
-									order = "%d-%d:lift"%(ant[0],ant[1])
-									break
+								if ant_dico[ant]['strength'] >= clod_dico[clod]:
+									if not check_if_ant_has_order(ant,orders):
+										order = "%d-%d:lift"%(ant[0],ant[1])
+										break
 					orders += order + " "
 
 
