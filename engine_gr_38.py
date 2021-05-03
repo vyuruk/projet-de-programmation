@@ -31,7 +31,7 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 	shift = 3
 
 	Is_human = False
-	if type_1 == "human" and type_2 == "IA":
+	if type_1 == "human" and type_2 == "human":
 		Is_human = True
 
 	Is_IA = False
@@ -47,8 +47,8 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 			y = pixel_to_cell_y(y,shift)
 			print(term.move_xy(0,y) + term.black + term.on_black + "" + term.normal, end='', flush=True)
 			order_player_1 = input("Indiquer vos ordres (P1)")
-			order_player_2 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,2)
-			#order_player_2 = input("Indiquer vos ordres (P2)")
+			#order_player_2 = get_AI_sentence(ant_dico,anthill_dico,clod_dico,2)
+			order_player_2 = input("Indiquer vos ordres (P2)")
 			orders = player_order(order_player_1,order_player_2)
 
 		if Is_IA:
@@ -298,12 +298,12 @@ def Fight(orders, ant_dico):
 				distance_x = abs(target[0] - coordinate[0])
 				distance_y = abs(target[1] - coordinate[1])
 				scope = ant_dico[coordinate]['scope']
-				if scope <= distance_x and scope <= distance_y:
+				if scope >= distance_x and scope >= distance_y:
 					damage = ant_dico[coordinate]['strength']
 					life = ant_dico[target]['life']
 					life = life - damage
 					ant_dico[target]['life'] = life
-
+				
 def Check_something(dico, coordinate, key='###', result='###'):
 	"""
 	Check many things, like if something is in a case or if something has an attribut to check
@@ -836,13 +836,16 @@ def Is_ant_dead(ant_dico):
 	Version
 	-------
 	Specification : Antoine Boudjenah (v.1 22/02/21), Valentin Yuruk(v.2 23/04/21)
-	Implementation: Antoine Boudjenah (V.1 15/03/21)
+	Implementation: Antoine Boudjenah (V.1 15/03/21), Marchal Tom (v.2 03/05/21)
 	"""
-
+	cles = []
 	for cle in ant_dico:
 		life = ant_dico[cle]['life']
-		if life == 0:
-			ant_dico.pop[cle]
+		if life <= 0:
+			cles.append(cle)
+	if len(cles) > 0:
+		for cle in cles:
+			del ant_dico[cle]
 
 def Clod_number_around_anthill(clod_dico, anthill_dico, team):
 	"""the function that will count clods around the anthills.
@@ -1073,7 +1076,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 
 						#dirige la fourmi vers la motte de terre
 						if is_around == False and is_nearest == True:
-							if ant[0] != clod[0] and ant[1] != clod[1]:
+							if ant[0] != clod[0] or ant[1] != clod[1]:
 								coordinate = [ant[0], ant[1]]
 								new_position = get_coordinate(coordinate, clod)
 
@@ -1107,6 +1110,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 								
 					#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
 					else:
+						coordinate = [ant[0], ant[1]]
 						new_position = get_coordinate(coordinate, anthill_dico[anthill_color])
 						if not check_if_ant_has_order(ant,orders):
 							order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
@@ -1267,4 +1271,4 @@ def check_if_ant_has_order(ant,orders):
 
 	return is_order
 
-main_game(cpx_file,1,'human',2, 'IA')
+main_game(cpx_file,1,'human',2, 'human')
