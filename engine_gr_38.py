@@ -114,15 +114,16 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 					Ant_movement(map, order, ant_dico, clod_dico, ant_dico, shift, team)
 
 		#Création nouvelle fourmis
+		Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
 		Is_ant_dead(ant_dico) 
 		New_ant(turn,ant_dico,anthill_dico,clod_dico,Clod_number_around_anthill,)
 
 		turn += 1
 		time.sleep(1.00)
 
-		Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
+		#Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
 		#print(orders)
-	End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn)
+	End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn,group_1,group_2)
 	#disconnect
 	"""remote_play.close_connection(connection)"""
 
@@ -178,7 +179,7 @@ def Is_game_over(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 		Is_game_over = True
 	return Is_game_over
 
-def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn): 
+def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn,group_1,group_2): 
 	""" Finish the game and display the winner team.
 	Parameter
 	---------
@@ -186,6 +187,9 @@ def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 	clod_dico : The dico of the clods (dict)
 	anthill_dico : The dico of the anthills (dict)
 	turn : the number of turn (int)
+	group_1: the number of the first group (int)
+	group_2: the number of the second group (int)
+
 	Version
 	-------
 	Specification : Yuruk Valentin, Marchal Tom (v.2 16/32/21)
@@ -202,19 +206,19 @@ def End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn):
 			print("There's no winner")
 		else:
 			#Blue team win
-			print("Blue team is the winner")	
+			print("The Blue team is the winner(group %d)"%group_1)	
 	elif nbr_cld_b == 8:
 		#Red team win
-		print("Red team is the winner")	
+		print("The Red team is the winner(group %d)"%group_2)	
 	elif turn == 200:
 		if nbr_cld_r == nbr_cld_b:
 			print("There's no winner")
 		elif nbr_cld_r > nbr_cld_b:
 			#Red team win
-			print("Red team is the winner")	
+			print("The Red team is the winner(group %d)"%group_2)
 		else:
 			#Blue team win
-			print("Blue team is the winner")
+			print("The Blue team is the winner(group %d)"%group_1)	
 
 def Drop_clod(orders,ant_dico,clod_dico):
 	""" Check if the ant can drop the clod.
@@ -745,14 +749,18 @@ def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
 	for ant in ant_dico:
 		x = pixel_to_cell_x(ant[0],shift)
 		y = pixel_to_cell_y(ant[1],shift)
-
-		if ant_dico[ant]['team'] == 'blue':
+		if ant_dico[ant]['life'] <= 0:
+			if ant_dico[ant]['clod']:
+				print(term.move_xy(x,y) + term.white + term.on_black + "●" + term.normal, end='', flush=True)
+			else:
+				print(term.move_xy(x,y) + term.black + term.on_black + " " + term.normal, end='', flush=True)
+		if ant_dico[ant]['team'] == 'blue' and ant_dico[ant]['life'] > 0:
 			#Si la fourmi porte une motte de terre
 			if ant_dico[ant]['clod']:
 				print(term.move_xy(x,y) + term.brown + term.on_blue + ":" + term.normal, end='', flush=True)
 			else:
 				print(term.move_xy(x,y) + term.brown + term.on_blue + "." + term.normal, end='', flush=True)
-		else:
+		elif ant_dico[ant]['team'] == 'red' and ant_dico[ant]['life'] > 0:
 			if ant_dico[ant]['clod']:
 				print(term.move_xy(x,y) + term.brown + term.on_red + ":" + term.normal, end='', flush=True)
 			else:
@@ -784,7 +792,8 @@ def Display_refresh(ant_dico, clod_dico, anthill_dico, shift):
 		#Si pas de fourmis aux coordonnées
 		else:
 			print(term.move_xy(x,y) + term.white + term.on_black + "●" + term.normal, end='', flush=True)
-			
+
+		
 def pixel_to_cell_x(x,shift):
 	""" Convert the pixel coordinate into cell coordinate.
 	Parameters
@@ -868,12 +877,11 @@ def Clod_number_around_anthill(clod_dico, anthill_dico, team):
 	coordinate = [anthill_dico[team][0], anthill_dico[team][1]]
 	nbr_cld = 0
 	
-	for clod in clod_dico:
-		for x in range(0,3):
-			for y in range(0,3):
-				coordinate = [x-1,y-1]
-				if Check_something(clod_dico, coordinate):
-					nbr_cld += 1
+for x in range(0,3):
+	for y in range(0,3):
+		coordinate = [anthill_dico[team][0]+x-1,anthill_dico[team][1]+y-1]
+		if Check_something(clod_dico, coordinate):
+			nbr_cld += 1
 
 	return nbr_cld
 	
@@ -1079,9 +1087,6 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 							if ant[0] != clod[0] or ant[1] != clod[1]:
 								coordinate = [ant[0], ant[1]]
 								new_position = get_coordinate(coordinate, clod)
-
-
-
 								if not check_if_ant_has_order(ant,orders):
 									order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
 									break
@@ -1101,7 +1106,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 					if distance[0] < 2 and distance[1] < 2:
 						if not Is_anthill(anthill_dico, anthill_dico[anthill_color], team):
 							if Check_something(clod_dico, target):
-								
+
 
 
 
