@@ -877,11 +877,11 @@ def Clod_number_around_anthill(clod_dico, anthill_dico, team):
 	coordinate = [anthill_dico[team][0], anthill_dico[team][1]]
 	nbr_cld = 0
 	
-for x in range(0,3):
-	for y in range(0,3):
-		coordinate = [anthill_dico[team][0]+x-1,anthill_dico[team][1]+y-1]
-		if Check_something(clod_dico, coordinate):
-			nbr_cld += 1
+	for x in range(0,3):
+		for y in range(0,3):
+			coordinate = [anthill_dico[team][0]+x-1,anthill_dico[team][1]+y-1]
+			if Check_something(clod_dico, coordinate):
+				nbr_cld += 1
 
 	return nbr_cld
 	
