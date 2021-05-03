@@ -999,6 +999,38 @@ def get_coordinate(coordinate, target):
 		new_position[1] = coordinate[1] - 1
 	return new_position
 
+def Is_around(anthill, element):
+	"""
+	#Vérifier si la motte de terre n'est pas autour de la fourmilière
+	"""
+	is_around = False
+	for x in range(0,3):
+		for y in range(0,3):
+			target = [anthill[0] + x - 1 , anthill[1] + y - 1]
+			if element[0] == target[0] and element[1] == target[1]:
+				is_around = True
+	return is_around
+
+def Is_nearest(coordinate, element, dico):
+	"""
+	#regarde si la motte est la plus proche
+	elemebnt = clod ...
+	dico
+	coordinate
+	"""
+	is_nearest = True
+	dist_x = abs(coordinate[0] - element[0])
+	dist_y = abs(coordinate[1] - element[1])
+
+	for elmt in dico:
+		x = abs(coordinate[0] - elmt[0])
+		y = abs(coordinate[1] - elmt[1])
+		if dist_x > x and dist_y > y:
+			is_nearest = False
+
+	return is_nearest
+
+
 def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	""" Get the orders given by the IA
 	
@@ -1018,6 +1050,7 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	Parameters : Marchal Tom (v.1 26/04/21)
 	Implémentation : Marchal Tom ()
 	"""
+	order = ""
 	orders = ""
 	# Récupère la fourmilière de l'équipe
 	if player_id == 1:
@@ -1050,70 +1083,56 @@ def get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id):
 	if Clod_number_around_anthill(clod_dico,anthill_dico, team) < 3:
 		#Pour chaque fourmis
 		for ant in ant_dico:
-			#Pour les fourmis de l'équipe
-			if ant_dico[ant]['team'] == team:
-				#Pour les fourmis de l'équipe qui ne portent pas de motte de terres
-				if ant_dico[ant]['clod'] == False:
-					#On va chercher pour chaque fourmis la motte de terre la plus proche
-					for clod in clod_dico:
-						is_around = False
-						#Vérifier si la motte de terre n'est pas autour de la fourmilière
-						for x in range(0,3):
-							for y in range(0,3):
-								coordinate = [anthill_dico[anthill_color][0] + x - 1 ,anthill_dico[anthill_color][1] + y - 1]
-								if clod[0] == coordinate[0] and clod[1] == coordinate[1]:
-									is_around = True	
+			if not check_if_ant_has_order(ant,orders):
+				coordinate = [ant[0], ant[1]]
+				#Pour les fourmis de l'équipe
+				if ant_dico[ant]['team'] == team:
+					#Pour les fourmis de l'équipe qui ne portent pas de motte de terres
+					if ant_dico[ant]['clod'] == False:
+						#On va chercher pour chaque fourmis la motte de terre la plus proche
+						for clod in clod_dico:
+							is_around = Is_around(anthill, clod)
+							is_nearest = Is_nearest(coordinate, clod, clod_dico)
 
-						#regarde si la motte est la plus proche
-						is_nearest = True
-						dist_x = abs(ant[0] - clod[0])
-						dist_y = abs(ant[1] - clod[1])
-
-						for cld in clod_dico:
-							x = abs(ant[0] - cld[0])
-							y = abs(ant[1] - cld[1])
-							if dist_x > x and dist_y > y:
-								is_nearest = False
-
-						#dirige la fourmi vers la motte de terre
-						if is_around == False and is_nearest == True:
-							if ant[0] != clod[0] or ant[1] != clod[1]:
-								coordinate = [ant[0], ant[1]]
-								new_position = get_coordinate(coordinate, clod)
-								if not check_if_ant_has_order(ant,orders):
-									order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
+							#dirige la fourmi vers la motte de terre
+							if is_around == False and is_nearest == True:
+								if coordinate[0] != clod[0] or coordinate[1] != clod[1]:
+									new_position = get_coordinate(coordinate, clod)
+									order = "%d-%d:@%d-%d"%(coordinate[0],coordinate[1],new_position[0],new_position[1])
 									break
-							else:
-								if ant_dico[ant]['strength'] >= clod_dico[clod]:
-									if not check_if_ant_has_order(ant,orders):
-										order = "%d-%d:lift"%(ant[0],ant[1])
+								else:
+									if ant_dico[ant]['strength'] >= clod_dico[clod]:
+										order = "%d-%d:lift"%(coordinate[0],coordinate[1])
 										break
-					orders += order + " "
 
-
-				#Si elle porte une motte de terre
-				else:
-					target = [anthill_dico[anthill_color][0], anthill_dico[anthill_color][1]]
-					#check si la fourmi est à coté de la fourmilière
-					distance = [abs(target[0] - ant[0]), abs(target[1] - ant[1])]
-					if distance[0] < 2 and distance[1] < 2:
-						if not Is_anthill(anthill_dico, anthill_dico[anthill_color], team):
-							if Check_something(clod_dico, target):
-
-
-
-
-
-								if not check_if_ant_has_order(ant,orders):
-									order = "%d-%d:drop"%(ant[0],ant[1])
-								
-					#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
+					#Si elle porte une motte de terre
 					else:
-						coordinate = [ant[0], ant[1]]
-						new_position = get_coordinate(coordinate, anthill_dico[anthill_color])
-						if not check_if_ant_has_order(ant,orders):
-							order = "%d-%d:@%d-%d"%(ant[0],ant[1],new_position[0],new_position[1])
-					orders += order + " "
+						target = [anthill[0], anthill[1]]
+						distance_anthill = [abs(target[0] - coordinate[0]), abs(target[1] - coordinate[1])]
+						#Si elle est à côté de la fourmilière
+						if distance_anthill[0] < 3 and distance_anthill[1] < 3:
+							#La foumi est à coté de la fourmilière
+							if distance_anthill[0] < 2 and distance_anthill[1] <2:	
+								order = "%d-%d:drop"%(coordinate[0],coordinate[1])
+							#Cases entre 2 et 3
+							else:
+								#Parcourir les cases autour de la fourmilière
+								for x in range(0,3):
+									for y in range(0,3):
+										target = [anthill[0] + x - 1, anthill[0] + y - 1]
+										#Si case libre
+										if not Check_something(clod_dico, target):
+											#Se diriger vers la case la plus proche autour de la fourmilière
+											new_position = get_coordinate(coordinate, target)
+											order = "%d-%d:@%d-%d"%(coordinate[0],coordinate[1],new_position[0],new_position[1])
+
+						#dirige la fourmi vers la fourmilière si elle n'est pas autour de la fourmilière
+						else:
+							if not check_if_ant_has_order(ant,orders):
+								new_position = get_coordinate(coordinate, anthill)
+								order = "%d-%d:@%d-%d"%(coordinate[0],coordinate[1],new_position[0],new_position[1])
+
+			orders += order + " "
 
 	if Clod_number_around_anthill(clod_dico, anthill_dico, team) >= 3:
 		# Deuxième étape : Se diriger vers la fourmilière adverse
