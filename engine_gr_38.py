@@ -70,29 +70,26 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 
 			# main loop (until one of both players says "stop")
 			sentences = {1:'', 2:''}
-			while sentences[1] != 'Stop' and sentences[2] != 'Stop':
-				# get player sentences
-				for player_id in (1, 2):
-					# get player sentence
-					if types[player_id] == 'AI':
-						sentences[player_id] = get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id)
-					else:
-						sentences[player_id] = remote_play.get_remote_orders(connection)
+			# get player sentences
+			for player_id in (1, 2):
+				# get player sentence
+				if types[player_id] == 'AI':
+					sentences[player_id] = get_AI_sentence(ant_dico,anthill_dico,clod_dico,player_id)
+				else:
+					sentences[player_id] = remote_play.get_remote_orders(connection)
 
-					# notify other player, if necessary
-					if types[3-player_id] == 'remote':
-						remote_play.notify_remote_orders(connection, sentences[player_id])
-					
-				# use player sentences
-				for player_id in (1, 2):
-					print('Player %d said "%s".' % (player_id, sentences[player_id]))
-					
-				# wait 3 seconds
-				time.sleep(3)
-				print('\n------------------------\n')
+				# notify other player, if necessary
+				if types[3-player_id] == 'remote':
+					remote_play.notify_remote_orders(connection, sentences[player_id])
 				
-			# close connection
-			remote_play.close_connection(connection)
+			# use player sentences
+			for player_id in (1, 2):
+				print('Player %d said "%s".' % (player_id, sentences[player_id]))
+				
+			# wait 3 seconds
+			time.sleep(3)
+			print('\n------------------------\n')
+				
 
 		for team in range(2):
 			for order in orders[team]:
@@ -121,15 +118,11 @@ def main_game(cpx_file, group_1, type_1, group_2, type_2):
 		turn += 1
 		time.sleep(1.00)
 
-		#Display_refresh(ant_dico,clod_dico,anthill_dico,shift)
-		#print(orders)
 	End_game(Clod_number_around_anthill,clod_dico,anthill_dico,turn,group_1,group_2)
 	#disconnect
-	"""remote_play.close_connection(connection)"""
+	remote_play.close_connection(connection)
 
 
-
-##################
 def player_order(order_player_1, order_player_2):
 	"""the function that will allow players to give orders during the game
 	
